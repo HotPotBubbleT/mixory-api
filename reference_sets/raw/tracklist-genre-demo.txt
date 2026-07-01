@@ -1,0 +1,735 @@
+Tracklist Genre Demo 备注：ID - ID就是不知道artist而且还未release的歌曲，没有任何数据，artist-ID 就是指知道制作人，但是还没有release的歌曲 然后前面有时间的是整个set的开始时间，你觉得可以参考就参考，没必要就不用管了
+
+Chris Luno | Melodic House Set | AM.RADIO 016 （Melodic House） list格式是：顺序，artist， 歌曲名，后面可能有record label 01 Juan Yarin - If I Could Stop The Sunset MOBLACK
+02 Keinemusik ft. Bell Towers - Pay To Play (YUMA Remix) KEINEMUSIK
+03 Moojo - Ze Roberto  CALAMAR
+04 Tony Romera - Time To Move 
+05 A$AP Rocky - Sundress (ID Remix) A$AP
+06 CamelPhat vs. The Temper Trap - NYP2 vs. Sweet Disposition (House Music Bro & Tyson O'Brien Mashup) 
+07 Tame Impala - The Less I Know The Better (Sitze Remix) MODULAR
+08 dub.format - Feelings MACCABI HOUSE
+09 Notre Dame - Do For Your Love PARANORMAL SOCIETY
+10 David Mackay & sone. & Kaba - Us Against The World
+11 Chris Luno - Yes Baby REALM
+12 Crystal Waters - Gypsy Woman (She's Homeless) (ID Remix) VIRGIN
+13 Chris Luno & Ando K - Wanna Feel LIFE ON MOON
+14 Sabb ft. Forrest - One Of Us (Dennis Ferrer Remix)
+
+Peggy Gou  EDC Korea
+list格式是：顺序，artist， 歌曲名，后面可能有record label
+01 Nic Fanciulli ft. Robert Courtois - Set Me Free  02 Klubbheads - Hard House WOOZ! 03 Jack Back vs. Cevin Fisher - 2000 Freaks Come Out
+04 ID - ID
+05 DJ Babatr - To-k TRR
+06 Klubbheads - Everybody (Put Your Hands In The Sky) BEBÉ
+07 ID - ID
+08 Ewan McVicar & KETTAMA - The Miracle Makers G-TOWN RECORDS
+09 Mass Medium - Mindblower ARMADA
+10 Joe Hunt - Up To No Good  ROOM TWO 11 Roddy Ricch - The Box (Skrillex Edit)  12 Peggy Gou - (It Goes Like) Nanana XL
+13 ID - ID
+14 JENNIE - like JENNIE (Peggy Gou Remix) COLUMBIA (SONY)
+15 The Trip - Foxy Dave TESSELLATE
+16 ID - ID
+17 L.P. Rhythm - Dance With Me THREE SIX ZERO
+18 Peggy Gou - ID
+19 Gala - Freed From Desire DO IT YOURSELF
+20 ID - ID
+ Kaskade Live at EDC Las Vegas 2026 （ house） 0:01 | Kaskade - Stay For Love
+5:10 | Kaskade x CID x Anabel Englund - Vision Blurred
+7:45 | Kaskade feat. Kaitlin Aragon - Runaway
+11:25 | Kaskade & Punctual & Poppy Baskcomb vs. 22Bullets - Heaven Knows vs. Dope (Kaskade Edit) 
+13:03 | Kaskade, Layton Giordani, Natalie Jane - Meet Again
+17:17 | Kaskade - ID
+19:42 | Kaskade - Dealin With It
+21:30 | Kaskade - Will I Feel Love
+24:25 | Kaskade & BUNT. - Comes Back Around
+28:45 | Kaskade feat. Becky Jean Williams - Feeling The Night
+31:14 | Kaskade feat. Ilsey - Disarm You
+35:15 | HI-LO vs. Kx5 & HAYLA - Reese vs. Escape (HI-LO Mashup) 
+38:50 | Kaskade & Justus - Motivated
+41:00 | Kaskade & Sarah de Warren - UV
+43:00 | Fatboy Slim - Rockafeller Skank (Glass Petals Remix)
+46:00 | Kaskade & Crankdat - ID
+47:45 | deadmau5 & Kaskade - Move For Me (Whethan Remix) 
+50:57 | Gryffin & Kaskade vs. CamelPhat & Massano & Nu-La - Living In My Oblivion (Kaskade Edit) 
+53:35 | Kaskade feat. Skylar Grey - Room For Happiness (Layton Giordani Remix)
+55:20 | CID - Loaded Gun
+57:35 | Kaskade - 4AM (Adam K & Soha Remix) 
+1:01:35 | Kaskade & Lavern - ID
+1:03:15 | Kaskade - obvious
+
+
+Chris Lake LIVE From San Francisco 2025 | Full Set （ house） 0:00 Chris Lake & Yael Watchman - On & On (Intro Edit)
+1:45 Chris Lake & Skrillex ft. ANITA B QUEEN - LA NOCHE
+6:42 Chris Lake & Ragie Ban - Toxic
+10:09 Chris Lake & Amber Mark - In My Head
+13:07 Lola Young - Messy (Chris Lake Remix)
+16:19 Chris Lake ft. Aatig - In The Yuma
+18:45 Ray Volpe - Laserbeam (Chris Lake Remix)
+22:05 Chris Lake ft. Aluna - Beggin'
+24:04 Andruss & Juos - Dame Más (Gasolina)
+25:46 Parris Mitchell Project ft. Wax Master - Ghetto Shout Out!! (Chris Lorenzo Remix)
+29:13 Blank Sense & Tobias Gerard - Go
+32:51 Chris Lake & Black Lotus - Favourite One
+36:27 Chris Lake & Disclosure ft. Leven Kali - one2three
+40:13 Chris Lake & Sammy Virji & RoRo - 925
+43:06 Chris Lake - Savana
+46:17 Fred again.. & Skepta & PlaqueBoyMax - Victory Lap (Hamdi & Arkania Edit)
+47:54 Chris Lorenzo - Appetite
+49:37 Chris Lorenzo - In This Bih
+52:41 Anti Up (Chris Lake & Chris Lorenzo) - I Cannot
+55:57 Anti Up (Chris Lake & Chris Lorenzo) - Control The Media (PEEKABOO Flip)
+57:25 The Chemical Brothers - Galvanize (Chris Lake Remix)
+1:01:25 Chris Lake - Psycho
+1:04:37 Chris Lake & Nathan Nicholson - Memories
+1:09:10 Placebo eFx - Nocebo (Redux Saints Remix)
+1:13:07 Chris Lake & Abel Balder - Ease My Mind
+1:17:03 Cajmere - Percolator (Chris Lake Remix)
+1:19:46 Marco Strous - Monkey Swag
+1:22:50 Skrillex & Fred again.. & Flowdan - Rumble (Chris Lake Remix)
+1:25:30 Confidence Man & JADE (UK) - Gossip (Chris Lake Remix)
+1:28:10 Chris Lake & ATRIP - Fight (Make You Fight)
+1:31:49 Chris Lake & Vera Blue - Chemistry
+1:36:21 Robin S - Show Me Love (FISHER Remix)
+1:40:03 Marco Strous - Professor X
+1:43:17 Chris Lake ft. Dances - Operator (Ring Ring) (Bleu Clair Remix)
+1:46:43 Chris Lake & Chris Lorenzo & Eats Everything - Down Boy
+1:50:12 CamelPhat vs. The Temper Trap - NYP2 vs. Sweet Disposition (Mashup)
+1:54:12 Chris Lake ft. Alexis Roberts - Turn Off The Lights
+1:58:54 Junior Senior - Move Your Feet (Edit)
+
+
+Shingo Nakamura - San Francisco House Mix (Rooftop) （Progressive House） [0:00:00] 01 rshand & Lewyn - Cycles [Monstercat Silk]
+[0:05:02] 02 Shingo Nakamura x Misc.Inc x Oliver River - Lily Garden [Monstercat Silk]
+[0:08:11] 03 Shingo Nakamura - Prism [Monstercat Silk]
+[0:11:59] 04 Kaiyan & Extra Special - I'll Be There [Colorize]
+[0:18:09] 05 Jody Wisternoff & James Grant - Dapple (Braxton Remix) [Anjunadeep]
+[0:21:18] 06 Cendryma - Render Time [Cydana Sounds]
+[0:28:07] 07 Shingo Nakamura - Phenomena [Monstercat Silk]
+[0:32:50] 08 Shingo Nakamura - Foggy Morning [Monstercat Silk]
+[0:37:49] 09 Shingo Nakamura - There For Me [Monstercat Silk]
+[0:43:16] 10 Franco Camiolo & Yonsh - Artifact [UV Noir]
+[0:49:43] 11 Vintage & Morelli - As We Become [As You Are]
+[0:54:56] 12 Shingo Nakamura & Brandon Mignacca - ‎Darling Midnight [Monstercat Silk]
+[0:59:21] 13 Shingo Nakamura - Perception [Monstercat Silk]
+[1:06:04] 14 Shingo Nakamura - Orphic [Otographic]
+[1:10:43] 15 Sound Quelle x Deagon x MØØNE - Risk It All [Monstercat Silk]
+[1:15:37] 16 Shingo Nakamura & Hausman - Sense Of Adventure [Monstercat Silk]
+[1:19:45] 17 BT & Shingo Nakamura - Lifeforce [Monstercat Silk] 
+[1:24:39] 18 PROFF - Interstellar [Anjunadeep]
+[1:30:35] 19 YOTTO x Eli & Fur - Somebody To Love [Odd One Out]
+[1:34:43] 20 Hausman - Break (Vintage & Morelli Remix) [ClubHaus]
+[1:40:39] 21 Shingo Nakamura - Glow [Monstercat Silk] 
+[1:45:48] 22 Oliver Smith & Amy J Pryce - Open Up [Anjunabeats]
+[1:50:24] 23 Shingo Nakamura Sapporo (Talamanca Remix) [Monstercat Silk]   
+[1:55:32] 24 Approaching Black & Jacob Henry - Yesterdays Tears (Shingo Nakamura Remix) [Monstercat Silk]
+
+
+Black Coffee Experience • Live Set at Pirenópolis-GO （ house） [00:00] Lilya Mandre & Zac Martel & Tommy Kimpton - Sensa (Manoo Remix) [MADORASINDAHOUSE]
+[08:00] Gumz ft. Habib Koite - Jakoke [MADORASINDAHOUSE]
+[13:00] MoBlack & Benja & Franc Fala ft. Salif Keïta & Cesária Évora - Yamore [UMSM]
+[18:00] Pablo Fierro & Carlos Francisco ft. Jaky Amir - Koroka [WE'RE HERE]
+[24:00] Catz 'N Dogz - The Choice (Angelos Remix) [PETS]
+[29:00] Wisso & Jake Boehm ft. Nes Mburu - Umeenda (Chaleee Remix) [POWPOW MUSIC]
+[34:00] Jimi Jules - Trippy Yeah
+[40:00] Meera - No Title Yet [CRIB]
+w/ Franky Boissy ft. Roland Clark - Black Music (Acappella) [CHEZ]
+[46:00] Danidane & MAAURA - Like Dat (Ape Drums Remix) [KLUB RECORD]
+[51:00] Karyendasoul - Isambulo [SHÈN]
+[56:30] Dr Feel & Native Tribe & Da Q-Bic - Jungle Drums [MANSA MUSA MEDIA]
+w/ Crystal Waters - Gypsy Woman (She's Homeless) (Acappella) [VIRGIN]
+w/ Robin S - Show Me Love (Acappella) [ATLANTIC (WARNER MUSIC)]
+w/ Adam Port & Stryv ft. Malachii - Move [KEINEMUSIK]
+w/ Michael Jackson - Billie Jean (Acappella) [EPIC (SONY BMG)]
+[1:03:00] SOMMERS (UK) & Keby Flavour & Leo Nicky - Moto Moto (Kususa Remix) [DEEP IN YOUR SOUL]
+w/ Danny Tenaglia ft. Celeda - Music Is The Answer (Dancin' And Prancin') (Acappella) [TWISTED]
+[1:08:30] ID - ID
+[1:12:30] Jonathan Kaspar - On The Line (Raw Edit) [INNERVISIONS]
+[1:17:00] RÜFÜS DU SOL - Innerbloom (Original Orn Remix) [SWEAT IT OUT!]
+[1:22:30] Yamil - Broke In Pieces (Da Mike Remix) [PIECES OF LIFE]
+[1:27:00] Liva K - The Drill [MADORASINDAHOUSE]
+[1:32:00] Manoo & Raoul K ft. Ahmed Sosso - Bara (Pablo Fierro Remix) [COMPOST]
+[1:37:00] MA/JI - Unchain (Manoo Remix) [DJOON EXPERIENCE]
+w/ Black Coffee ft. Bucie - Superman (Acappella) [SOULISTIC]
+w/ Masters At Work - Work (Acappella) [MAW]
+[1:42:30] Rampa ft. Chuala - Les Gout [KEINEMUSIK]
+[1:45:00] &ME & Black Coffee - The Rapture Pt.III [KEINEMUSIK]
+w/ Kings Of Tomorrow ft. Julie McKnight - Finally (Acappella) [DEFECTED]
+[1:51:00] Diephuis & Maj - Im Nin' Alu (Manoo Club Remix)
+[1:57:30] From P60 & Lisa Shaw - Magic (Manoo Instrumental) [KING STREET]
+w/ Roland Clark - I Get Deep (Acappella) [S&S]
+[2:02:00] Darque & Da Capo ft. Idd Aziz - Yauna [MADORASINDAHOUSE]
+[2:08:30] Stardust - Music Sounds Better With You [ROULÉ]
+w/ Michael Jackson - Wanna be Startin' Somethin' (Mama Say Acappella) [EPIC (SONY BMG)]
+w/ Daft Punk - One More Time [DAFT LIFE/WARNER FRANCE]
+[2:13:00] Luedji Luna - Banho De Folhas (Maz Remix) [DAWN PATROL]
+[2:17:30] Dr Feel - Drums Of Orisha [DOUBLE]
+[2:24:30] Bonga - Mona Ki Ngi Xica (Pablo Fierro Remix) [MOBLACK]
+[2:29:00] ID - ID  Jerro | Eclectic Morning Café Set | AM.RADIO 005 （Melodic house） 0:00 - ID w/ Nelly Furtado - Promiscuous vocal
+2:47 - Romain Garcia - Next To You
+7:45 - Makebo & Amonita - Back To The Roots 
+12:41 - Lane 8 - Walk The Plank x Jerro In The Cold
+17:27 - ID unless I am oblivious 
+20:15 - Ayybo - Demon Time
+24:04 - Prdyz Allein x Kidnap feat. Leo Stannard - Moments (Ben Böhmer & Nils Hoffmann Remix) vocal
+28:52 - Jerro - Forever
+30:21 - Jyll, Lane 8, Le Youth - I Will Leave a Light On
+32:39 - Rüfüs Du Sol - Innerbloom (ID Remix?)
+37:55 - GENESI & Kino Todo - Criminals Move in Silence
+41:15 - GENESI Edit - Funk Soul Brother 
+46:37- Gabriel Bone - Save The World
+50:50 - gokayraven & wopsyinc - Money Hunter 
+55:40 - Eric Prydz, Empire of the Sun - We Are Mirage
+
+
+EMBRZ | Sunset Park Mix in Austin, TX（Melodic house） 0:00 - EMBRZ - Slow Bloom x Make Your Way (left ya voicenote intro)
+3:08 - EMBRZ - IOU x Luttrell - Sunrise Song
+6:01 - EMBRZ - Figured Out
+9:14 - Courtney Storm and Finley Brückner - What A Feeling
+12:20 - Finding Mero - Solitude x EMBRZ - Hide & Seek Vocal
+14:55 - EMBRZ - Let a Love ft. XIRA
+18:03 - Cubsport & EMBRZ - Summer Lover
+20:54 - EMBRZ - Not Alone
+23:45 - EMBRZ - Count To Three x Sound 4 U (mashup)
+26:55 - EMBRZ - Gather Together
+29:06 - EMBRZ - Tidal Wave ft. Maria Lynn
+31:50 - Porter Robinson - Sea of Voices (RAC remix)
+34:38 - Mat Zo - Grounded
+37:30 - Billie Eilish - Lovely (EMBRZ remix)
+39:53 - EMBRZ - Light Falls  MARTIN GARRIX LIVE @ TOMORROWLAND 2025 (W2) （Mainstage） [00:12] Martin Garrix & Saksham ft. Scott Quinn - Ain't Letting You Down (Intro Edit)
+w/ [00:58] Martin Garrix & Justin Mylo ft. Dewain Whitmore - Burn Out (Acappella)
+[02:44] Martin Garrix & Third ≡ Party ft. Oaks & Declan J Donovan - Carry You
+[05:45] Martin Garrix & DubVision ft. Shaun Farrugia - Wherever You Are
+[07:00] Sebastian Ingrosso & Alesso & Ryan Tedder vs. Martin Garrix & Dua Lipa - Calling vs. Scared To Be Lonely (Martin Garrix Mashup)
+[09:28] Third ≡ Party & Arias vs. Martin Garrix & Matisse & Sadko & John Martin vs. Calvin Harris & Ellie Goulding vs. Sebastian Ingrosso & Alesso - Nation vs. Won't Let You Go vs. Miracle vs. Calling (Third ≡ Party Mashup)
+[11:27] Martin Garrix & DubVision ft. Jaimes - Empty
+[12:45] Martin Garrix & Matisse & Sadko ft. BARBZ - Butterflies
+w/ [12:55] Martin Garrix ft. Usher - Don't Look Down (Acappella) 
+[16:08] AFROJACK & Martin Garrix & David Guetta & Amél vs. Coldplay - Our Time vs. A Sky Full Of Stars (AFROJACK Mashup)
+[18:15] Martin Garrix & Sentinel vs. Avicii & Andreas Moe - Hurricane vs. Fade Into Darkness (Martin Garrix Mashup)
+[19:43] Mesto - Caramelle
+[20:57] Martin Garrix & Citadelle - Peace Of Mind
+[22:40]Martin Garrix & R3HAB & Skytech & Luciana vs. Empire Of The Sun - Voodoo vs. Walking On A Dream (Martin Garrix Mashup)
+[25:37] Martin Garrix - Animals
+w/ [26:27] Quintino - Warehouse
+[28:22] Armin van Buuren & Martin Garrix ft. Libby - Sleepless Nights
+[31:34] Martin Garrix & Mesto ft. WILHELM - Breakaway
+[34:15] Martin Garrix & MOTi ft. Jenny Wahlström - Virus (How About Now)
+[36:05] Martin Garrix & Sem Vox ft. Jaimes - Gravity
+[38:31] Dimitri Vegas & Like Mike & Martin Garrix - Tremor (Sensation 2014 Anthem)
+[39:59] Martin Garrix & Brooks vs. Macklemore & Patrick Stump of Fall Out Boy - Quantum vs. Summer Days (Martin Garrix Mashup)
+[41:36] Martin Garrix & DubVision vs. Avicii & Simon Aldred - Starlight vs. Waiting For Love (Martin Garrix Mashup)
+[45:07] Martin Garrix & Lauv - MAD (Matt Pridgyn Remix)
+[47:03] Martin Garrix ft. Bonn - High On Life
+[51:30] DubVision vs. Martin Garrix & Bebe Rexha - Rise Again vs. In The Name Of Love (Martin Garrix Mashup)
+w/ [54:44] Martin Garrix & Blinders vs. Bebe Rexha - Aurora vs. In The Name Of Love (Martin Garrix Mashup)
+[54:49] Martin Garrix & Alesso ft. Shaun Farrugia - Inside Our Hearts (Outro Edit) STMPD   MALAA - LIVE AT SHRINE, LOS ANGELES 2022（deep house） 00:00 Malaa - ID (Intro Edit)
+2:38 Malaa ft. Jacknife - Revolt (Lodgerz Remix) 
+4:27 DJ Snake – Nightbird
+5:57 Valentino Khan - Goin Up
+9:02 KOHMI - Back Once Again
+11:56 Nolek - En La Cama
+15:36 Malaa - Who I Am
+18:23 Malaa - Who I Am (Lodgerz Remix)
+19:23 D.O.D - Two Caps
+23:10 Torren Foot – ID
+26:26 DJ Snake & Tchami & Malaa & MERCER - Made In France 
+29:07 Honey & Badger – Careless
+30:07 Aazar – ID
+33:08 Solardo - Angel Dust
+38:25 KILL SCRIPT – Afterparty
+41:57 Malaa - Cash Money (ID Remix)
+43:45 CASSIMM - Yes Man
+47:45 Malaa & DJ Snake & Yung Felix – Deep
+51:15 Siwell - Sinnerman (Prelude Mix)
+54:35 Monaco - Who's On What?!
+57:30 Malaa - Notorious (4.0 Remix)
+1:01:40 MBG & SDS - New Jack (Steve Angello Remix)
+1:05:30 Malaa – Gangsta
+1:08:10 Lil Wayne - A Milli (Norsheep Remix)
+1:11:33 Malaa ft. Fivio Foreign – Outcast
+1:14:35 Malaa - WAIT (Frents Remix)
+1:16:00 Malaa - WAIT (Kenty Clide Remix)
+1:17:00 REZZ & Malaa - Criminals (Honey & Badger Remix)
+1:20:35 DJ Snake & Malaa - Ring The Alarm (Habstrakt Remix)
+1:22:10 Siwell - Vibe Breaks
+1:23:30 ID – ID
+1:25:40 The Black Eyed Peas & Shakira & David Guetta - Don't You Worry (Malaa Remix)
+1:29:00 Malaa & Tony Romera - The Game Is Dead
+1:32:40 Malaa - How It Is
+1:36:28 Mau P - Gimme That Bounce
+1:40:45 Malaa – Hypnotic
+1:44:02 SVNF8 - Daily Routine
+1:47:00 DJ DLG - Your Eyes
+1:51:00 Malaa ft. Jadakiss - No Panic
+1:53:53 Malaa - Diamonds (BROHUG Remix)
+ Tchami - Elevation Sunrise Liveset (Miami)（house） [0:25] Tchami ft. ZHU - All On Me 
+[4:08] Tchami - The Light 
+[6:25] Gibson Parker - Circles 
+[9:12] Tchami ft. Stacy Barthe - Rebirth 
+[11:45] Tchami - Born Again 
+[13:32] ID - ID
+[15:00] Malaa & KOOS - Hell (Norsheep Remix) 
+[17:50] Tchami - Buenos Aires 
+[21:15] Tchami ft. Taiki Nulight - Godspell 
+[22:47] Tchami ft. Daecolm - Proud (KOHMI Remix) 
+[25:08] Tchami ft. Daecolm - Proud
+[26:25] Tchami ft. Marlena Shaw - Faith 
+[30:43] Malaa & Habstrakt - Riot Gear 
+[33:48] Tchami ft. Suburban Plaza - Toxic Love 
+[37:03] Tchami - ID
+[37:04] Tchami ft. Chace - Heartless (Acappella)
+[38:05] Tchami ft. Tony Romera - Monseigneur 
+[41:25] Tchami - Sweet Savage 
+[44:30] Dr. Fresch & MARTEN HØRGER - Take A Step Back 
+[47:07] Motez - Give Your Heart Away 
+[52:39] Tchami ft. Gunna - Praise
+[56:00] Tchami - Shine On
+[56:18] Tchami - Untrue (Accapella) 
+[56:49] Tchami ft. Todd Edwards - Damaged Hearts  ZHU at Hakuba Iwatake in Nagano, Japan for Cercle （house） 00:00 -> Benno Blome - Spherical Aberration (Jiggler Remix)
+05:05 -> JMO - Arcelia (Avoure Remix)
+w/ 06:44 -> ZHU & partywithray - Came For The Low
+w/ 08:56 -> Jiggler - Stairs
+10:30 -> Rodriguez Jr. - An Evidence Of Time (Claude VonStroke Remix)
+15:00 -> Denis Horvat - Noise feat. Lelah
+w/ 15:45 -> ZHU - Palm of My Hand
+19:30 -> Marcus Meinhardt - Duke (Jiggler Remix)
+w/ ZHU x Skrillex x THEY. - Working for it (Only the VOCALS)
+25:30 -> ZHU & Tame Impala - My Life (Blond:ish Remix)
+27:45 ->  MXV - Einrude (Tantum Remix)
+32:00 -> Sascha Braemer - Megan (Original Mix)
+37:30 -> Billie Eilish - everything i wanted (Rauschhaus Edit)
+42:00 -> ZHU - In the Morning
+w/ 42:30 -> Paul Deep - Dogma
+47:10 -> Moonwalk - Galactic (Original Mix)
+51:40 -> Lunar Plane - Olappa
+57:10 -> Ivory - Pfauneinsel (Original Mix)
+01:03:00 -> D-Formation & Rick Pier O'Neil - Odisey (Original Mix)
+01:07:00 -> ZHU - Risky Business
+01:12:00 -> Klunsh - Anyway (Original Mix)
+w/ ZHU - Faded
+01:16:20 -> WO-CORE - Zelda (Original Mix)
+w/ ZHU - Good Life (Only the VOCALS)
+01:21:25 -> Jam & Spoon - Follow Me (Jerome Isma--Ae Extended Remix)
+01:27:30 -> Rafael Cerato & Haze-M - Perihelion (Original Mix)
+w/ Adrian Lux - Teenage Crime
+01:32:00 -> Zimmz - Pragmatic
+01:37:00 -> 2pole - Run feat. Ursula Rucker (Original Mix)
+w/ ZHU - Moves Like Ms. Jackson (Outkast Cover)  FISHER LIVE FROM TOMORROWLAND MAINSTAGE 2025 （house） 01 ID - ID
+02 MARTEN HØRGER - ALL BARK NO BIT
+03 Prospa - Don't Stop CIRCOLOCO
+04 Jack Orley - All I Think About  STMPD
+05 Piero Pirupa - Let's Jack  CATCH & RELEASE
+06 Discip - Sexy Bitch  FREE
+07 Nu Aspect - Mind Illusion CATCH & RELEASE
+08 FISHER ft. Kita Alexander - Atmosphere CATCH & RELEASE
+09 NO STATIC - Diva CATCH & RELEASE
+10 Toman - Verano en NY  SOLID GROOVES
+11 Nico Falla - Let Me In CATCH & RELEASE
+12 Lady GaGa ft. Colby O'Donis - Just Dance (ACRAZE Remix) INTERSCOPE
+13 BIJOU - Mamacita DO NOT DUPLICATE
+14 Samuele Sartini - Family Affair CATCH & RELEASE
+15 CID & Taylr Renee - Fancy $hit CATCH & RELEASE
+16 Chris Lorenzo & Max Styler & Audio Bullys - London's On Fire BLACK BOOK
+17 Rafael Cerato & Equinøx - Let It Bang CATCH & RELEASE
+18 Chris Lake & FISHER & Sante Sansone vs. Gotye ft. Kimbra - Somebody (2024)  ISLAND (UMG)
+19 Marlon Hoffstadt & Coach Harrison - Daddy's In The Club (FISHER Remix) METHOD 808
+20 EdiP - Drgs And Purr CATCH & RELEASE
+21 FISHER & bbyclose - Blackberries CATCH & RELEASE
+22 SIDEPIECE - Cry For You  LIP SERVICE
+23  REYSHA RAMI & Dansyn - Bass Go Boom CATCH & RELEASE
+24 FISHER - Stay CATCH & RELEASE
+25 Armand van Helden - My My My (AVH Rework) SOUTHERN FRIED
+26 Shakedown - At Night (Anyma & Layton Giordani Remix) DEFECTED/PANORAMA
+27 JOSHWA - Work Your Body CATCH & RELEASE
+28 Sielo - Run It CATCH & RELEASE
+29 Bob Sinclar ft. Steve Edwards - World, Hold On (Children Of The Sky) (FISHER 2022 Rework) YELLOW/SPINNIN'
+30 Calvin Harris & D.O.D ft. Florence Welch - Sweet Nothing (2025 Edit)  SONY
+31 Juntaro - Paranoia CATCH & RELEASE
+32 FISHER - Rain CATCH & RELEASE
+33 Tony Dark Eyes - Dirty Dancin HOTHOUSE.
+34 Marlon Hoffstadt aka DJ Daddy Trance - It's That Time (FISHER Remix) METHOD 808
+35 Chris Lake & ATRIP - Make You Fight BLACK BOOK
+36 FISHER & Aatig - Take It Off CATCH & RELEASE
+37 FISHER - Losing It CATCH & RELEASE/ASTRALWERKS
+38 CHRYSTAL - The Days (NOTION Remix) POLYDOR/CHAOS
+39 Oasis - Don't Look Back In Anger SONY
+ Tiësto Live at EDC Las Vegas 2026  （Mainstage） 00:00 Tiësto ft. Olivia Sebastianelli - Don't Lose Your Head
+04:03 Tiësto - Lost In The Ocean
+06:55 Nova Blue - Do It Like Me
+08:35 Tiësto - RVN (Raven)
+11:20 Human Resource - Dominator (ID Remix) w/ Dean Turnley - Actin' Tough (Acappella)
+14:04 Outlander - Vamp (Tiësto Remix)
+15:15 Guru Josh - Infinity (Tiësto Remix) (Live Performance)
+17:23 Tiësto - Echo Sax (Live Performance)
+20:05 Ricky Fobis - No Regular (Tiësto Remix)
+22:18 Nemke - Stampedo
+26:43 DJ Jan - X-Santo (Tiësto Remix)
+30:20 Ferry Tayle & Tonks pres. Mirage - Remember The Future
+33:55 Benwal - ID
+36:58 S3PPA - Inner Peace
+41:28 ID - ID
+45:13 CIElll - Tethered
+48:03 Tiësto - Moons Orbit
+51:08 Zombie Nation - Kernkraft 400 (Tiësto Remix)
+53:20 DEVERAUX - You Got Me
+55:47 Matty Ralph & JOKESONYOU - Heaven
+58:15 Matty Ralph - 1999
+1:00:02 LAWTON & Deckers - Los Retratos
+1:01:35 Dee Dee - Forever (Double D Rework / Tiësto Edit)
+1:05:21 Ueberrest - Disturbing Paradise
+1:07:43 Bryan Kearney & Modeā - Ready To Fly
+1:09:47 Tom Carroll - Wicked With You
+1:12:23 Domastic - Born Free
+1:15:45 Teriyaki Boyz vs. Gwen Stefani - Tokio Drift vs. Hollaback Girl (Macon 148 BPM Remix)
+1:17:29 EsDeeKid - 4 Raws (Tiësto Remix)
+1:19:42 Marie Vaunt - That Acid
+1:21:59 KUKO - Voicemail (Tiësto Remix)
+1:24:11 SZA - Kill Bill (Tiësto Remix)
+1:26:36 Ratty - Sunrise (Here I Am) (Tiësto Remix)
+
+ David Guetta live @ Tomorrowland 2025 （Mainstage）
+
+0:00 Intro
+1:10 David Guetta & Bebe Rexha - I'm Good (Blue) (Cedric Gervais Remix) 
+05:02 David Guetta ft Sia – Titanium (David Guetta & MORTEN Future Rave Remix)
+09:40 Hel:sløwed & Nina de Koning vs. Dada Life - Give It To Me vs. Kick Out The Epic Motherfucker (Armin van Buuren Mashup)
+13:35 Armin van Buuren & JOA - Heavy
+14:55 MORTEN & David Guetta ft Fedde Le Grand vs. Travis Scott & Playboi Carti - Night In Detroit vs. FE!N (Mashup) 
+18:04 Flo Rida ft. David Guetta - Club Can't Handle Me (David Guetta & DJs From Mars Bootleg)  
+19:48 David Guetta, Audio Bullys, DJs From Mars – Things I Haven’t Told You
+21:34 KRS-One - Sound Of Da Police (David Guetta Remix)
+23:33 David Guetta ft. Kid Cudi vs. Benny Benassi - Memories vs. Satisfaction (David Guetta & DJs From Mars Mashup) w/ Charli xcx - Guess (Acappella) 
+27:29 MORTEN & David Guetta - Lucky
+30:26 David Guetta & Cedric Gervais - A Better World (Cedric Gervais & Alexander Orue Remix) 
+33:27 David Guetta & Chris Willis vs. Volaris vs. Adele - Love Is Gone vs. Don't You Know vs. Set Fire To The Rain (DJs From Mars Bootleg) 
+37:09 Jaden Bojsen, David Guetta, Sami Brielle - Let's Go  
+w/ Ralphi Rosario ft. Xavier Gold - You Used To Hold Me (Acappella)  
+40:02 David Guetta ft. Ne-Yo & Akon - Play Hard (David Guetta & MORTEN Future Rave Remix)
+41:59 David Guetta & Marten Hørger - The Past, The Present, The Future
+45:25 David Guetta & Marten Hørger - Engage 
+47:45 David Guetta ft. Akon - Sexy Bitch
+51:03 David Guetta & OneRepublic - I Don't Wanna Wait (DJs From Mars Remix) 
+52:23 David Guetta, Alphaville, Ava Max - Forever Young  
+54:57 AFROJACK, Martin Garrix, David Guetta, Amél - Our Time
+58:18 Snoop Dogg vs. David Guetta – Sweat (David Guetta & MORTEN Remix)  
+1:01:40 Shouse vs. Pitbull ft. Ne-Yo, AFROJACK & Nayer vs. Argy & Omnya - Love Tonight (David Guetta Remix) vs. Give Me Everything vs. Aria (Mashup)
+1:04:07 Lola Young – Messy (AFROJACK Remix)
+1:07:38 David Guetta & Hypaton - Walked Away
+1:11:16 David Guetta, Hypaton, Bonnie Tyler - Together
+
+ILLENIUM | Ultra Music Festival 2026（Dubstep）
+
+0:11 | ILLENIUM - Self Titled Tour Edit (ILLENIUM Intro) w/. ILLENIUM & Ellie Goulding - Don't Want Your Love (Acappella) w/. ILLENIUM & Bring Me The Horizon - Slave To The Rithm (Sullivan King Remix) w/. ILLENIUM & Bring Me The Horizon - Slave To The Rithm (Ray Volpe Remix) 
+3:15 | Ray Volpe - Crash Out
+3:49 | ALOK & ILLENIUM - To The Moon (DnB Remix) 
+6:08 | ILLENIUM feat. Chandler Leighton - Lonely
+8:01 | ILLENIUM feat. WYLDE - Ur Alive
+9:49 | ILLENIUM & Elley Duhé - Feels Like You (LEUTHERO Remix)
+13:03 | Seven Lions & ILLENIUM feat. ÁSDÍS - Not Even Love w/. 15:38 Seven Lions & ILLENIUM feat. ÁSDÍS - Not Even Love (MUZZ Remix)
+16:13 | ILLENIUM vs. Marshmello feat. SACHA - You & I
+19:29 | ILLENIUM & Excision feat. I Prevail - Feel Something w/. 21:56 ILLENIUM & Excision feat. I Prevail - Feel Something (AlienPark Remix)
+23:00 | David Guetta & Sia & Alesso vs. ISOxo & frosttop - Titanium vs. Angels Landing (ILLENIUM Edit) 
+24:52 | Excision - ID
+25:43 | Marshmello & Space Laces - Conquer w/. Prosecute - Infinite Solitude
+26:10 | TYNAN & Kompany - on fire w/. Excision & ILLENIUM feat. Shallows - Gold (Stupid Love)
+27:22 | YOGI feat. Pusha T - Burial (Skrillex & TrollPhace Remix) w/. Stoned Level & MUERTE - STONED TO DEATH
+27:58 | ILLENIUM & HAYLA & Wooli vs. RÜFÜS DU SOL - In My Arms vs. Innerbloom (ILLENIUM Edit) 
+30:35 | Wooli & Subtronics - Lock In
+31:07 | GRiZ & Tape B feat. CREG - Light You Up
+32:22 | ILLENIUM, Valerie Broussard & Nurko - Sideways
+34:23 | ILLENIUM & Dean Lewis - Take Me Back
+36:00 | Nero - Promises (Virtual Riot 2019 Remix)
+37:31 | Kompany - Usurper
+38:33 | Ray Volpe - Happy Song
+39:11 | Valentino Khan & Eptic feat. Lil Jon - Bloodbath w/. BIG FLORIDA & VRG - Womp Womp w/. BAILO x Styles&Complete feat. Lil Jon - Fuccboi (Spag Heddy Bootleg)
+39:51 | ILLENIUM, Excision & Wooli feat. Valerie Broussard - Zombie
+42:29 | ILLENIUM feat. Spiritbox - Shivering w/. Excision & Wooli feat. Sam King - Evolution
+43:45 | ILLENIUM feat. Tom Grennan & ALNA - Forever
+45:55 | ILLENIUM feat. Annika Wells - Nightlight
+46:44 | ILLENIUM, David Guetta, Dustin Lynch - Die Living w/. 49:10 Sebastian Ingrosso, Tommy Trash, John Martin - Reload
+49:55 | Swedish House Mafia feat. John Martin - Don't You Worry Child w/. ILLENIUM & Ryan Tedder - With Your Love (Acappella) 
+51:17 | ILLENIUM feat. Teddy Swims - All That Really Matters (Live Edit) 
+53:21 | ILLENIUM feat. Jon Bellion - Good Things Fall Apart
+56:04 | ILLENIUM - ODYSSEY Live Finale Edit
+
+Slander @ World DJ Festival 2026（Dubstep） 01. SLANDER ft. Dylan Matthew - Love Is Gone (Intro Edit)  
+w/ Vastive - Animals  
+w/ SLANDER & Crankdat ft. Asking Alexandria - Kneel Before Me  
+w/ SLANDER & San Holo ft. Julia Church - Broken Hearted (Nikademis Remix)  
+02. Skrillex & ISOxo - fuze  
+03. ID - ID  
+04. Tisoki - TURN ME UP (LOUDER)  
+w/ Bossfight - Fake  
+05. G Jones - In Your Head (RL Grime Edit)  
+w/ PhaseOne ft. Make Them Suffer - SOS  
+w/ Antima - Vortex  
+06. PhaseOne - TERRANOVA  
+w/ Excision & Kai Wachi - F.Y.U. (Acappella)  
+w/ Samplifire - PUNCH  
+07. Sullivan King & Vastive ft. Taylor Barber - Die By My Hand  
+w/ Excision & Wooli - Lockdown (SOUL VALIENT Flip)  
+08. SLANDER & SVDDEN DEATH - Blood On Me (VIP)  
+09. DJ Snake & SLANDER & Perry Wayne - ID  
+10. BARELY ALIVE - Hands Up  
+11. VRG - attitude!  
+12. Space Laces - Hazard Pay  
+13. SLANDER & EDDIE - ID  
+w/ ISOxo - dontstopme! (Acappella)  
+w/ ID - ID  
+14. SLANDER & Said The Sky ft. Julia Church - Potions  
+15. SLANDER & William Black - Back To U  
+16. SLANDER & William Black - Back To U (Control Freak Remix)  
+w/ ID - ID  
+17. Eptic - OCTANE  
+18. The Bloody Beetroots ft. Steve Aoki - Warp 1.9 (Ray Volpe Flip)  
+19. ID - ID  
+20. ID - ID  
+21. SLANDER & Nejvex - ID  
+22. Seven Lions & SLANDER & Dabin ft. Dylan Matthew - First Time  
+23. SLANDER & Blanke - Give You Love  
+24. SLANDER & Dabin - Fever Dream  
+25. SLANDER & NGHTMRE ft. Zohara - Free  
+26. Quad City DJ's - Space Jam (Jay Pryor Remix)  
+w/ SLANDER - Before Dawn  
+27. SLANDER ft. John Martin - Do You Feel Loved  
+28. SLANDER - ID (Is It Too Much)  
+29. BARELY ALIVE - Speed Demon  
+30. Space Laces - FORCE MAJEURE  
+31. Eptic & Space Laces - Crash Out  
+32. Nitepunk - Bound 80  
+33. KRYTURE & Sam Lamar - Phantom  
+w/ Samplifire - GOOME  
+34. SLANDER & Vastive - Under My Skin  
+35. Pendulum ft. Joey Valence & Brae - Napalm (RIOT Remix)  
+36. SLANDER - ID  
+37. SLANDER - ID  
+38. 1991 ft. Alex Hosking - Jungle  
+w/ Odd Mob - LEFT TO RIGHT (Subsonic Remix)  
+39. Sub Focus & Subsonic - Roll Too Deep  
+w/ Grafix - Telling Me  
+40. Dimension - Offender  
+w/ Dimension - Offender (Dimension & Grafix Remix)  
+w/ Nero - Destruction  
+w/ Culture Shock & Sarah de Warren - All The Things She Said (Culture Shock Version)  
+41. SLANDER & San Holo ft. Julia Church - Broken Hearted  
+42. SLANDER & Jason Ross - ID  
+43. SLANDER & William Black ft. Jordan Shaw - Keep U Warm  
+44. SLANDER ft. RØRY & Dylan Matthew - Walk On Water (Trivecta & Wooli Remix)  
+45. Zomboy - Like A Bitch  
+w/ MARAUDA - ID  
+w/ OG Nixin & Blankface - CHROME RIDER  
+46. ATB - Ecstasy (William Black Remix)  
+47. SLANDER ft. Eric Leva - Superhuman  
+w/ SLANDER ft. Eric Leva - Superhuman (SPAG Remix)  
+w/ SLANDER & RIOT ft. Delacey - You Don't Even Know Me (VIP)  
+w/ Graphyt ft. DrTkD - Soul Eater  
+48. SLANDER & Subtronics ft. JT Roach - Gravity (VIP)  
+w/ SLANDER & Subtronics ft. JT Roach - Gravity  
+49. Perry Wayne - ID  
+50. TYNAN - MAD  
+w/ SVDDEN DEATH - DREAM SEQUENCE (Kompany Remix)  
+51. Perry Wayne - Bodies  
+w/ MARAUDA - That Marauda Song (MARAUDA VIP)  
+52. SLANDER & MARAUDA - Suffer  
+53. Tisoki - CONTROL  
+w/ VRG - ID  
+54. KAYZO X MUST DIE! - Back 2 The Rave  
+w/ ID - ID  
+55. TRVCY - Higher  
+w/ VRG - ID  
+56. Kai Wachi & Prosecute - Clinch  
+w/ Perry Wayne & Future Exit - Problem  
+w/ $UICIDEBOY$ - 2ND HAND (Kliptic Bootleg)  
+w/ MARAUDA - REALM OF THE DAMNED  
+w/ Hammerhead - Manifolds  
+57. SLANDER ft. Dylan Matthew - Love Is Gone  
+58. SLANDER & SEVENTEEN & JOSHUA - Love Is Gone 
+
+SKRILLEX LIVE @ ULTRA MUSIC FESTIVAL 2025  （Dubstep）
+0:00:00 Skrillex & Nitepunk - ID( the courage of the cowardly dog panic audio)
+0:01:09 Champion, Four Tet, Skrillex & Naisha - Talk To Me
+0:03:42 Push VS. Push (Lizdek Remix)
+0:05:59 Where Are Ü Now (Live Edit)
+0:06:46 Skrillex - VOLTAGE
+0:07:27 TAKA (Caribou Remix) VS. TAKA (PEEKABOO Remix)
+0:08:38 XENA (Live Edit)
+0:09:46 XENA (KARAN! Flip)
+0:10:38 Wiwek & Skrillex - Habibi ID
+0:12:07 Skrillex & Habstrakt, ft. bladee - ID VS. Selecta (Acapella)
+0:14:07 Levels (Skrillex Tribute VIP 2025)
+0:16:25 Levels (ISOxo Edit)
+0:16:51 Tears VS. Ceremony (Acapella)
+0:17:05 Tears (KARAN! 'UMF' Flip) VS. In Da Getto (Acapella)
+0:18:52 Fine Day Anthem
+0:21:52 JOYRYDE & Skrillex - Talk To Em
+w/ Headie One - Both (Acapella)
+w/ Megan Thee Stallion - Body (Acapella)
+0:23:27 Mumbai Power
+0:25:28 Skrillex & ISOxo - Killers ID
+w/ Jungle Bae (Acapella)
+w/ Harlem Shake (Acapella)
+0:27:37 I Wanna Dance With Somebody (Who Loves Me) VS. Where Are Ü Now
+0:29:23 Skrillex & Moody Good - ID
+0:30:51 Skrillex & Moody Good - ID
+【Flowdan On Stage】
+0:31:58 Rumble
+0:32:25 Rumble (Chase & Status Remix)
+0:33:58 Rumble (ID Remix)
+0:34:12 Badders VIP
+0:36:39 Breathe (Mefjus & Camo & Krooked Remix) VS. Baddadan (Acapella)
+0:37:31 Baddadan
+0:37:53 Supersonic (My Existence) (Nitepunk Remix) Skrillex & Nitepunk Re-drum
+0:38:58 Kyoto (Virtual Riot Remix)
+0:40:21 Way Back (Live Edit)
+0:42:35 Bangarang (Miami 2025 Edit)
+0:44:50 Bangarang (Build Up) VS. Where Are Ü Now (Acapella)
+0:45:20 Roi The Digger
+0:45:49 PEEKABOO & Scrufizzer - One More Time
+0:47:37 Summit VS. Flicker (Skrillex Edit)
+0:50:34 Skrillex & G Jones - DRUIDS VS. With You, Friends (Acapella)
+0:51:01 Skrillex & HAWAII SLIM - SPITFIRE
+0:51:38 Skrillex & HAWAII SLIM - SPITFIRE (Drop 2)
+0:52:03 Skrillex & Swedm & Loam - SEE YOU AGAIN VIP VS. VOLTAGE (Virtual Riot Remix)
+0:53:57 Skrillex - MORJA KAIJU VIP
+0:54:46 Skrillex - MOSQUITOTOUILLE
+【"Jr. Gong" Damian Marley On Stage】
+0:55:47 Welcome To Jamrock VS. Make It Bun Dem
+0:58:09 Make It Bun Dem (Culprate Remix)
+0:58:48 Scary Monster And Nice Spirits (YOOKiE 'This Kills In Live' VIP / Acraze Jersey Flip / Skrillex Live Edit)
+【Young Miko On Stage】
+0:59:58 Skrillex & Tainy & Young Miko - Apaga La Luz
+1:03:23 Skrillex, Virtual Riot, Nakeesha - WHILE YOU WERE SLEEPING
+【Naisha On Stage】
+1:06:56 Naisha - ID
+1:09:26 Talk To Me VIP
+1:12:17 A Bit Patchy
+1:12:55 Leave Me Like This (Live Edit)
+1:14:31 We Are Your Friends (Acapella) VS. Turn off The Lights (Build Up)
+1:15:00 RATATA (Live Edit)
+1:15:58 Still Here (With The Ones That I Came With) VS. Don't Leave Me Like This (Instrumental)
+1:16:54 RATATA VS. Skrillex Siren
+
+Lane 8 - Sunrise Set - Grand Lake, CO （melodic House）
+
+0:00 Archaellum – Reflections
+6:20 Lane 8 - Sunday Song (Qrion Remix)
+11:02 Hidden Face – Need U
+14:09 Polar Inc. – Regal
+18:23 Che-Yung – Wander
+22:53 Le Youth – Waves (OCULA Remix) 
+26:50 Anderholm – Sanctify
+30:33 ATTLAS – Faya
+34:10 Jerro ft. Sophia Bel – Demons
+38:44 JRJ – Me & You
+43:00 Sultan + Shepard – nCTRL
+47:33 Lane 8 & Yotto – Buggy
+53:48 Lane 8 ft. Kauf – How Often (Ben Böhmer Remix)
+58:25 Anderholm – Meridian
+1:01:46 Avoure & Hexlogic – Wonder
+1:06:56 Sultan + Shepard – Warsaw
+1:09:00 Grigoré – Illusion
+1:15:14 Polar Inc. – Journal w/Lane 8 ft. Solomon Grey – Hot As You Want (Acappella) 
+1:19:37 Einmusik – Farina 
+1:25:36 Lane 8 & Massane – And We Knew It Was Our Time
+1:33:49 Sultan + Shepard – Kelam
+1:35:51 Lane 8 & OTR – Shatter
+1:38:59 Grigoré – Voices Of Obscurity
+1:44:24 CloZee – Neon Jungle (Lane 8 Remix)
+1:48:00 Ashibah & Bakka – So High
+1:52:49 EMBRZ – Heal
+1:55:39 Hidden Face – Lunar Attraction
+1:58:14 PRAANA – Sedona [what an epic ending]
+
+Sultan + Shepard - DJ Set - Malibu Ranch, CA （melodic House） 00:00 - 04:59 Sultan + Shepard feat. Tishmal - Losing Ground
+05:00 - 08:23 ID-ID 
+08:23 - 12:17  Maxi Meraki - All This and More w/Rufus du Sol - Alive (Acapella) 
+12:18 - 17:29 ID - ID 
+17:30 - 19:49 Le Youth, Sultan + Shepard ft Panama - New Love (Black Wands Remix)
+19:50 - 24:31 Sultan + Shepard - Neptune
+24:32 - 27:38 Metodi Hristov - Through My Skin
+27:39 - 31:16 Horizon - A Kid From The Stars w/ Sultan + Shepard- Avalanche
+31:17 - 35:06 Maarja Nuut - Kuud Kuulama (Sultan + Shepard Remix)
+35:07 - 39:58 Sultan + Shepard- RnR
+39:59 - 43:07 Cornelius SA - Answers
+43:08 - 48:17 Ry X - Body Sun (Sultan + Shepard Remix)
+48:18 - 53:46 Sultan + Shepard feat. Delhia de France- Zima
+53:47- 57:38 Le Youth - Cycles w/Sultan + Shepard- Making Time (Acapella)
+57:39 - 1:02:01 Sultan + Shepard- Roads
+1:02:02 - 1:04:20 Sultan + Shepard feat. Angela McClusky- More Than You Ever Know 
+1:04:21 - 1:09:12 Space Food - Circe Paradigm w/ Le Youth, Sultan + Shepard feat. Emily Falvey - Pattern
+1:09:13 - 1:13:02 Sultan + Shepard- Concorde
+1:13:03 - 1:17:39 Sultan + Shepard feat. Andrew Belle- Elenore
+1:17:40 - 1:21:28 ID - ID
+1:21:29 - 1:26:06 Yotto - Ingern w/ Tinlicker- Just To Hear You Say (Joseph Ray Remix)
+(Sultan + Shepard Mashup)
+1:26:07 - 1:31:53 Sultan + Shepard - Forever, Now  
+
+然后是我自己打的几个set： Jackin / Funky House | Vol.1
+Foo Funkers & Jonk & Spook – What U Wanna Do
+Joseph Nappi – Catch Me
+N.W.N. – Above (Remix 2 Edit)
+Bellaire – Jazzed Up
+Jonk & Spook – What U Need
+Never Dull – BONKERS
+Angelo Ferreri – Night Fever
+Dutchican Soul – Reckless Girl
+Daniel Dash – Spirit of House
+Earth n Days – Burnin’ Up
+Foo Funkers – Take a Beat
+N.W.N. – Can I Get a Rhythm?
+Illyus & Barrientos – Get Up, Don’t Stop
+KPD – Ch, Ny, LA
+ROMBE4T – Party People (Instrumental Mix)
+Majestic & Mike Dunn – House Music
+Dexter Troy – Ain’t It Groovy
+Dexter Troy – Natural Jazz  Melodic Progressive House | Vol.2
+Tracklist
+All Access – Sultan + Shepard
+Sense of Adventure – Shingo Nakamura, Hausman
+Raindrops – Blood Groove & Kikis
+Radiate – Andrew Nak
+Running – Because of Art
+Green & Blue – Maty Owl
+Jumbo – Jamie Stevens Remix
+Carax – NTFO
+Umbra – Layer J, Sebek
+Midnight Coast – Sunset Vision
+Move It – NO STATIC Remix
+The Raid – CIREZ D
+Elements – Pryda
+Run – Lane 8, Kasablanca
+Finale – Rinzen, Oscar Rodriguez
+Nothing To Lose – Massane & Otherwish  Jazz Hop  | Vol.3
+Requiem (Instrumental) by J Dilla
+Just Chill by Emapea
+Aurora by Sushi Music & Rook1e
+Luv(sic), Pt. 2 by Nujabes & Shing02
+South Side (feat. Shing02) by Uyama Hiroto
+What's Real (feat. Emanon) by Jazz Liberatorz
+Fall In Love by Slum Village
+Blessing It (Remix) (Street Version) (feat. Substantial & Pase Rock) by Nujabes
+So Far To Go (feat. Common & D'Angelo) by J Dilla
+Juju by Ras G
+In the Basement by Spaze Windu
+Be Strong by Thes One
+Beach Dr. by Oddisee
+Day 3 by Ta-ku
+Soul Diggin' Pt. 2 by Bugseed
+Life's A Bitch by Will Sessions
+Bleepers by DJ Spinna
+Luv(sic), Pt. 3 (feat. Shing02) by Nujabes
+Kings Never Dies by Sushi Music
+
+
+
+
+
+
+
+
+
+
+
+
+
+
