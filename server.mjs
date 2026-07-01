@@ -48,7 +48,7 @@ const server = createServer(async (req, res) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
 
     if (url.pathname.startsWith("/api/")) {
-      addCorsHeaders(res);
+      addCorsHeaders(req, res);
       if (req.method === "OPTIONS") {
         res.writeHead(204);
         return res.end();
@@ -1555,9 +1555,14 @@ function sendText(res, text, status = 200) {
   res.end(text);
 }
 
-function addCorsHeaders(res) {
-  res.setHeader("Access-Control-Allow-Origin", "http://127.0.0.1:3000");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
+function addCorsHeaders(req, res) {
+  const origin = req.headers.origin;
+  const allowedOrigins = new Set([
+    "http://127.0.0.1:3000",
+    "http://localhost:3000",
+    "https://hotpotbubblet.github.io"
+  ]);
+  res.setHeader("Access-Control-Allow-Origin", allowedOrigins.has(origin) ? origin : "*");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
 }
