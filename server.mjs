@@ -1555,8 +1555,10 @@ function sendText(res, text, status = 200) {
   res.end(text);
 }
 
-function addCorsHeaders(req, res) {
-  const origin = req.headers.origin;
+function addCorsHeaders(reqOrRes, resMaybe) {
+  const req = resMaybe ? reqOrRes : null;
+  const res = resMaybe || reqOrRes;
+  const origin = req?.headers?.origin;
   const allowedOrigins = new Set([
     "http://127.0.0.1:3000",
     "http://localhost:3000",
