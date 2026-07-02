@@ -6,6 +6,7 @@ const generatedPath = join(rootDir, "reference_sets", "generated", "reference-se
 const firstExpansionPath = join(rootDir, "reference_sets", "raw", "tracklist-expansion-2026-06-26.txt");
 const secondExpansionPath = join(rootDir, "reference_sets", "raw", "tracklist-expansion-ukg-bass-afro-disco-2026-06-26.txt");
 const thirdExpansionPath = join(rootDir, "reference_sets", "raw", "tracklist-expansion-lofi-coffee-disco-bass-2026-06-26.txt");
+const fourthExpansionPath = join(rootDir, "reference_sets", "raw", "tracklist-expansion-public-test-2026-07-02.txt");
 
 const firstExpansionConfigs = [
   {
@@ -250,22 +251,260 @@ const thirdExpansionConfigs = [
   }
 ];
 
+const fourthExpansionConfigs = [
+  {
+    id: "dua-lipa-blessed-madonna-club-future-nostalgia",
+    heading: "Dua Lipa & The Blessed Madonna - Club Future Nostalgia",
+    name: "Dua Lipa & The Blessed Madonna - Club Future Nostalgia",
+    dj: "The Blessed Madonna",
+    genres: ["pop dance", "mainstream dance", "house"],
+    vibes: ["party", "bright", "friday night"],
+    defaultInputFormat: "title-artist"
+  },
+  {
+    id: "calvin-harris-ultra-miami-2024",
+    heading: "Calvin Harris - Live at Ultra Music Festival Miami 2024",
+    name: "Calvin Harris - Live at Ultra Music Festival Miami 2024",
+    dj: "Calvin Harris",
+    genres: ["mainstage", "pop dance", "big room", "house"],
+    vibes: ["festival", "mainstage", "peak time"],
+    defaultInputFormat: "artist-title"
+  },
+  {
+    id: "tomorrowland-2025-mainstream-dance",
+    heading: "Tomorrowland 2025",
+    name: "Tomorrowland 2025 Mainstream Dance Mix",
+    dj: "Various DJs",
+    genres: ["mainstage", "pop dance", "big room"],
+    vibes: ["festival", "mainstage", "party"],
+    defaultInputFormat: "artist-title"
+  },
+  {
+    id: "jozier-wine-down-vol-2",
+    heading: "Wine Down Vol. 2",
+    name: "Wine Down Vol. 2: Mashups, R&B, Afrobeats, Hip-Hop",
+    dj: "JOZIER",
+    genres: ["r&b", "hip hop", "afrobeats"],
+    vibes: ["chill", "party", "after party"],
+    defaultInputFormat: "title-artist"
+  },
+  {
+    id: "baby-vaye-playgrnd-hiphop-rnb-club-edits",
+    heading: "HIP-HOP, R&B, CLUB EDITS",
+    name: "PLAYGRND Series | Baby Vaye | Hip-hop, R&B, Club Edits",
+    dj: "Baby Vaye",
+    genres: ["hip hop", "r&b", "club edits"],
+    vibes: ["party", "club", "high energy"],
+    defaultInputFormat: "mixed"
+  },
+  {
+    id: "dcr-milda-playgrnd-hiphop-rnb-amapiano",
+    heading: "PLAYGRND SERIES | DCR MILDA",
+    name: "PLAYGRND Series | DCR Milda | Hip-hop, R&B, Amapiano, Electronic",
+    dj: "DCR Milda",
+    genres: ["hip hop", "r&b", "amapiano", "electronic"],
+    vibes: ["party", "club", "eclectic"],
+    defaultInputFormat: "mixed"
+  },
+  {
+    id: "healing-amapiano-bali",
+    heading: "Healing Amapiano Mix | Bali",
+    name: "Healing Amapiano Mix | Bali",
+    dj: "Amapiano Reference",
+    genres: ["amapiano", "afro house", "afrobeats"],
+    vibes: ["sunset", "chill", "organic"],
+    defaultInputFormat: "title-artist"
+  },
+  {
+    id: "shimza-camden-roundhouse-london",
+    heading: "Shimza Live From Camden Roundhouse",
+    name: "Shimza Live From Camden Roundhouse, London",
+    dj: "Shimza",
+    genres: ["afro house", "organic house", "deep house"],
+    vibes: ["club", "sunset", "groove"],
+    defaultInputFormat: "artist-title"
+  },
+  {
+    id: "black-coffee-lets-pipa-new-years-2026",
+    heading: "Black Coffee live @Let's Pipa New Years 2026",
+    name: "Black Coffee live @ Let's Pipa New Years 2026",
+    dj: "Black Coffee",
+    genres: ["afro house", "organic house", "deep house"],
+    vibes: ["sunset", "deep", "after party"],
+    defaultInputFormat: "mixed"
+  },
+  {
+    id: "dj-niktel-funk-disco-nu-disco-studio24",
+    heading: "Funk, Disco & Nu Disco Grooves",
+    name: "Funk, Disco & Nu Disco Grooves | DJ NIKTEL | STUDIO24 Sessions",
+    dj: "DJ NIKTEL",
+    genres: ["nu disco", "funk", "disco"],
+    vibes: ["groove", "bright", "friday night"],
+    defaultInputFormat: "title-artist"
+  },
+  {
+    id: "harry-romero-defected-disco-house-summer-2026",
+    heading: "Disco House - Defected - Mixed by Harry Romero",
+    name: "Disco House - Defected - Mixed by Harry Romero Summer Mix 2026",
+    dj: "Harry Romero",
+    genres: ["disco house", "funky house", "soulful house"],
+    vibes: ["summer", "groove", "party"],
+    defaultInputFormat: "artist-title"
+  },
+  {
+    id: "defected-glitterbox-summer-soundtrack-2022",
+    heading: "Disco House - Defected x Glitterbox",
+    name: "Disco House - Defected x Glitterbox - Summer Soundtrack Mix 2022",
+    dj: "Glitterbox",
+    genres: ["disco house", "soulful house", "nu disco"],
+    vibes: ["summer", "bright", "groove"],
+    defaultInputFormat: "artist-title"
+  },
+  {
+    id: "nujabes-compilation-best-of",
+    heading: "Nujabes Compilation",
+    name: "Nujabes Compilation | Best of Nujabes",
+    dj: "Nujabes Reference",
+    genres: ["lo-fi", "jazzy hip hop", "chillhop"],
+    vibes: ["chill", "morning coffee", "nostalgic"],
+    defaultInputFormat: "artist-title"
+  },
+  {
+    id: "jandifull-nujabes-jazz-hiphop",
+    heading: "누자베스, 힙합의 리듬과 재즈의 온기",
+    name: "Nujabes | Jazz Hiphop | jandifull",
+    dj: "jandifull",
+    genres: ["lo-fi", "jazzy hip hop", "hip hop"],
+    vibes: ["chill", "morning coffee", "nostalgic"],
+    defaultInputFormat: "title-artist"
+  },
+  {
+    id: "elly-full-vinyl-90s-jazzy-hiphop",
+    heading: "FULL VINYL | 90s Jazzy Hiphop Set",
+    name: "Full Vinyl | 90s Jazzy Hiphop Set (Dirty Side B) | Elly",
+    dj: "Elly",
+    genres: ["jazzy hip hop", "hip hop", "lo-fi"],
+    vibes: ["nostalgic", "chill", "vinyl"],
+    defaultInputFormat: "title-artist"
+  },
+  {
+    id: "yunji-ukg-bassline-nyc-bodega",
+    heading: "UKG & Bassline Mix in an NYC Bodega",
+    name: "UKG & Bassline Mix in an NYC Bodega | Yunji",
+    dj: "Yunji",
+    genres: ["uk garage", "bassline", "2-step"],
+    vibes: ["club", "london", "shuffle"],
+    defaultInputFormat: "title-artist"
+  },
+  {
+    id: "sammy-virji-dj-mag-hq",
+    heading: "Sammy Virji's Energetic UKG & Bassline Set",
+    name: "Sammy Virji's Energetic UKG & Bassline Set From DJ Mag HQ",
+    dj: "Sammy Virji",
+    genres: ["uk garage", "bassline", "garage house"],
+    vibes: ["club", "high energy", "shuffle"],
+    defaultInputFormat: "artist-title"
+  },
+  {
+    id: "jvna-la-rooftop-future-bass-melodic-dubstep",
+    heading: "JVNA Live DJ Set @ LA Rooftop",
+    name: "JVNA Live DJ Set @ LA Rooftop - Future Bass & Melodic Dubstep",
+    dj: "JVNA",
+    genres: ["melodic bass", "future bass", "dubstep"],
+    vibes: ["emotional", "high energy", "rooftop"],
+    defaultInputFormat: "artist-title"
+  },
+  {
+    id: "seven-lions-north-coast-2025",
+    heading: "Seven Lions - North Coast Music Festival 2025",
+    name: "Seven Lions - North Coast Music Festival 2025",
+    dj: "Seven Lions",
+    genres: ["melodic bass", "dubstep", "trance"],
+    vibes: ["festival", "emotional", "peak time"],
+    defaultInputFormat: "artist-title"
+  },
+  {
+    id: "work-music-deep-focus-efficiency",
+    heading: "Work Music for Deep Focus and Efficiency",
+    name: "Work Music for Deep Focus and Efficiency",
+    dj: "Deep Focus Reference",
+    genres: ["ambient", "downtempo", "chill"],
+    vibes: ["deep focus", "working", "minimal"],
+    defaultInputFormat: "artist-title"
+  },
+  {
+    id: "no-vocals-house-studying-working-coding",
+    heading: "no vocals house music for studying",
+    name: "No Vocals House Music for Studying / Working / Coding",
+    dj: "Focus House Reference",
+    genres: ["organic house", "deep house", "minimal"],
+    vibes: ["deep focus", "working", "no vocals"],
+    defaultInputFormat: "artist-title"
+  },
+  {
+    id: "cid-live-from-the-edge-new-york-city",
+    heading: "CID LIVE FROM THE EDGE IN NEW YORK CITY",
+    name: "CID Live From The Edge in New York City",
+    dj: "CID",
+    genres: ["tech house", "house"],
+    vibes: ["club", "peak time", "groove"],
+    defaultInputFormat: "artist-title"
+  },
+  {
+    id: "odd-mob-seismic-dance-event-8",
+    heading: "Odd Mob at Seismic Dance Event 8.0",
+    name: "Odd Mob at Seismic Dance Event 8.0",
+    dj: "Odd Mob",
+    genres: ["bass house", "tech house", "house"],
+    vibes: ["club", "high energy", "peak time"],
+    defaultInputFormat: "artist-title"
+  },
+  {
+    id: "tony-romera-crusy-low-steppa-toolroom-miami-2025",
+    heading: "Tony Romera B2B Crusy B2B Low Steppa",
+    name: "Tony Romera B2B Crusy B2B Low Steppa - Live at Toolroom Miami 2025",
+    dj: "Tony Romera / Crusy / Low Steppa",
+    genres: ["french house", "funky house", "tech house"],
+    vibes: ["groove", "club", "friday night"],
+    defaultInputFormat: "artist-title"
+  },
+  {
+    id: "sonny-fodera-silverworks-island-london-2025",
+    heading: "Sonny Fodera live at Silverworks Island London 2025",
+    name: "Sonny Fodera live at Silverworks Island London 2025",
+    dj: "Sonny Fodera",
+    genres: ["vocal house", "deep house", "uk house"],
+    vibes: ["club", "bright", "festival"],
+    defaultInputFormat: "artist-title"
+  },
+  {
+    id: "chris-lorenzo-grand-park-la-2026",
+    heading: "CHRIS LORENZO LIVE AT GRAND PARK",
+    name: "Chris Lorenzo Live at Grand Park, Los Angeles 2026",
+    dj: "Chris Lorenzo",
+    genres: ["bass house", "tech house", "house"],
+    vibes: ["club", "peak time", "high energy"],
+    defaultInputFormat: "artist-title"
+  }
+];
+
 const existing = JSON.parse(readFileSync(generatedPath, "utf8"));
 const parsedSets = [
   ...parseExpansion(normalizeText(readFileSync(firstExpansionPath, "utf8")), firstExpansionConfigs),
   ...parseExpansion(normalizeText(readFileSync(secondExpansionPath, "utf8")), secondExpansionConfigs),
-  ...parseExpansion(normalizeText(readFileSync(thirdExpansionPath, "utf8")), thirdExpansionConfigs)
+  ...parseExpansion(normalizeText(readFileSync(thirdExpansionPath, "utf8")), thirdExpansionConfigs),
+  ...parseExpansion(normalizeText(readFileSync(fourthExpansionPath, "utf8")), fourthExpansionConfigs)
 ];
 const parsedIds = new Set(parsedSets.map((set) => set.id));
 
 const nextLibrary = {
   ...existing,
   generatedAt: new Date().toISOString(),
-  note: "Raw text is preserved in reference_sets/raw/. Parsed tracks are a local index for flow learning; ID/unreleased/layered lines are intentionally retained.",
+  note: "Raw text and timestamp details are preserved in reference_sets/raw/. The generated index keeps compact ordered artist/title data for flow learning.",
   sets: [
     ...(existing.sets ?? []).filter((set) => !parsedIds.has(set.id)),
     ...parsedSets
-  ]
+  ].map(compactSet)
 };
 
 writeFileSync(generatedPath, `${JSON.stringify(nextLibrary, null, 2)}\n`);
@@ -304,16 +543,32 @@ function parseExpansion(raw, configs) {
         layeredElements: tracks.filter((track) => track.isLayer).length,
         idTracks: tracks.filter((track) => track.isId).length
       },
-      tracks
+      tracks: tracks.map(compactTrack)
     };
   });
+}
+
+function compactTrack(track) {
+  return {
+    artist: track.artist,
+    title: track.title,
+    ...(track.isLayer ? { isLayer: true } : {}),
+    ...(track.isId ? { isId: true } : {})
+  };
+}
+
+function compactSet(set) {
+  return {
+    ...set,
+    tracks: (set.tracks ?? []).map(compactTrack)
+  };
 }
 
 function parseTrackLine(input, config) {
   const raw = input.trim();
   if (!raw || shouldSkipLine(raw, config)) return null;
 
-  let line = raw;
+  let line = raw.replace(/^[*•►]\s*/, "").trim();
   let time = "";
   let isLayer = false;
 
@@ -352,6 +607,11 @@ function parseTrackLine(input, config) {
 }
 
 function splitArtistTitle(line, format) {
+  const byParts = line.split(/\s+by\s+/i).map((part) => part.trim()).filter(Boolean);
+  if (byParts.length === 2) {
+    return cleanPair({ title: byParts[0], artist: byParts[1] });
+  }
+
   const slashParts = line.split(/\s+\/\s+/);
   if (slashParts.length === 2 && format === "title-artist") {
     return cleanPair({ title: slashParts[0], artist: slashParts[1] });
@@ -419,6 +679,12 @@ function shouldSkipLine(line, config) {
     "tech house",
     "festival house/big room"
   ].some((heading) => lower === heading || lower.startsWith(`${heading} `))
+    || /^\d+\.\s*.+：\d+\s*个/.test(line)
+    || /^参考方向[:：]/.test(line)
+    || /^适合普通用户歌单/.test(line)
+    || /^你现在/.test(line)
+    || /^对 Apple Music/.test(line)
+    || /^另外还有\d+个/.test(line)
     || lower.includes(config.heading.toLowerCase())
     || lower.includes(config.name.toLowerCase());
 }

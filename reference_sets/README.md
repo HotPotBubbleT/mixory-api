@@ -6,14 +6,15 @@ This folder stores user-provided DJ set references for local flow learning.
 - `raw/tracklist-expansion-2026-06-26.txt` adds Lo-fi, Trance, Techno, Deep House, Neo Soul, Road Trip, DnB, UK Garage, Tech House, and Festival House / Big Room examples.
 - `raw/tracklist-expansion-ukg-bass-afro-disco-2026-06-26.txt` adds UK Garage, Bass House, Afro / Organic House, and Nu Disco / Funky House examples.
 - `raw/tracklist-expansion-lofi-coffee-disco-bass-2026-06-26.txt` adds Jazzy Hip-hop / Lo-fi, Morning Coffee deep groove, Disco House, and Bass / Tech House examples.
+- `raw/tracklist-expansion-public-test-2026-07-02.txt` adds public-test coverage for pop / mainstream dance, hip-hop / R&B, Afro house / amapiano, disco / funk, lo-fi / jazzy hip-hop, UK garage, bass / melodic dubstep, focus / minimal, and favorite-DJ references.
 - `generated/reference-sets.json` is a first-pass structured index used for future recommendation logic.
 - `build-reference-library.mjs` rebuilds the structured index from the current raw reference files.
 
-The parsed JSON keeps uncertain material instead of deleting it:
+The generated JSON keeps a compact ordered index:
 
 - `ID - ID` or unreleased IDs are marked with `isId`.
 - `w/` acappella, mashup, or layered elements are marked with `isLayer`.
-- Original text for every parsed line is preserved in `raw`.
+- Original pasted text, timestamps, and labels stay in `raw/` files instead of being duplicated in `generated/reference-sets.json`.
 
 Current purpose:
 
