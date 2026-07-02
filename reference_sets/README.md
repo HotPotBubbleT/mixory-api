@@ -14,6 +14,7 @@ The generated JSON keeps a compact ordered index:
 
 - `ID - ID` or unreleased IDs are marked with `isId`.
 - `w/` acappella, mashup, or layered elements are marked with `isLayer`.
+- Each parsed reference track also gets a lightweight Mixory learning label under `mix`, including section, estimated energy, role, and transition hint.
 - Original pasted text, timestamps, and labels stay in `raw/` files instead of being duplicated in `generated/reference-sets.json`.
 
 Current purpose:
@@ -34,5 +35,6 @@ Backend usage:
   - `bpmRange`
   - `transitionDensity`
   - `transitionStyle`
+- The backend blends the rule-based pattern with the selected reference set's learned `energyCurve` at a low weight, so the reference library can influence recommendations without overpowering the user's own playlist.
 
 The frontend keeps using the user's own pasted tracks for the generated setlist, but uses the matched pattern to shape the energy curve and explain the recommendation.

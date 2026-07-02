@@ -529,6 +529,7 @@ function parseExpansion(raw, configs) {
       .map((line) => parseTrackLine(line, config))
       .filter(Boolean);
 
+    const compactTracks = tracks.map((track, trackIndex) => compactTrack(track, config, trackIndex, tracks.length));
     return {
       id: config.id,
       name: config.name,
@@ -543,25 +544,149 @@ function parseExpansion(raw, configs) {
         layeredElements: tracks.filter((track) => track.isLayer).length,
         idTracks: tracks.filter((track) => track.isId).length
       },
-      tracks: tracks.map(compactTrack)
+      learning: buildLearningSummary(compactTracks, config),
+      tracks: compactTracks
     };
   });
 }
 
-function compactTrack(track) {
+function compactTrack(track, setConfig = {}, index = 0, total = 1) {
+  const mix = labelReferenceTrack(track, setConfig, index, total);
   return {
     artist: track.artist,
     title: track.title,
+    mix,
     ...(track.isLayer ? { isLayer: true } : {}),
     ...(track.isId ? { isId: true } : {})
   };
 }
 
 function compactSet(set) {
+  const tracks = (set.tracks ?? []).map((track, index, allTracks) => compactTrack(track, set, index, allTracks.length));
   return {
     ...set,
-    tracks: (set.tracks ?? []).map(compactTrack)
+    learning: set.learning ?? buildLearningSummary(tracks, set),
+    tracks
   };
+}
+
+function labelReferenceTrack(track, setConfig = {}, index = 0, total = 1) {
+  const position = total <= 1 ? 0 : index / (total - 1);
+  const section =
+    position < 0.12 ? "intro" :
+    position < 0.34 ? "warmup" :
+    position < 0.64 ? "build" :
+    position < 0.84 ? "peak" :
+    position < 0.94 ? "release" :
+    "outro";
+  const text = `${track.artist ?? ""} ${track.title ?? ""}`.toLowerCase();
+  const tags = [...(setConfig.genres ?? []), ...(setConfig.vibes ?? [])].join(" ").toLowerCase();
+  const baseAnchors = getEnergyAnchorsForSet(tags);
+  const energy = interpolateAnchors(baseAnchors, position);
+  const adjustedEnergy = Math.round(Math.max(8, Math.min(98,
+    energy
+    + (/festival|mainstage|bass house|dubstep|peak|high energy/.test(tags) ? 6 : 0)
+    + (/focus|working|lo-fi|jazzy|chill|ambient|downtempo/.test(tags) ? -10 : 0)
+    + (/drop|vip|bootleg|festival|extended|remix/.test(text) ? 5 : 0)
+    + (/intro|interlude|acoustic|ambient/.test(text) ? -8 : 0)
+    + (track.isLayer ? -4 : 0)
+  )));
+
+  const role =
+    track.isLayer ? "layer" :
+    track.isId ? "id" :
+    /acappella|a cappella|w\/|mashup|vs\.| x /.test(text) ? "blend-tool" :
+    /intro|interlude/.test(text) ? "intro-tool" :
+    /remix|edit|bootleg|vip|dub/.test(text) ? "transition-record" :
+    /vocal|feat\.|ft\.|featuring/.test(text) ? "vocal-anchor" :
+    section === "peak" ? "peak-anchor" :
+    section === "outro" ? "closer" :
+    "groove-record";
+
+  const transitionHint =
+    role === "layer" || role === "blend-tool" ? "layered transition" :
+    /drop|bass|dubstep|festival|mainstage/.test(`${text} ${tags}`) ? "drop transition" :
+    /lo-fi|jazzy|focus|ambient|downtempo|chill/.test(tags) ? "soft blend" :
+    /uk garage|2-step|shuffle|bassline/.test(tags) ? "shuffle blend" :
+    /afro|organic|amapiano|percussion/.test(tags) ? "percussion layer" :
+    "groove blend";
+
+  return {
+    section,
+    energy: adjustedEnergy,
+    role,
+    transitionHint
+  };
+}
+
+function buildLearningSummary(tracks, setConfig = {}) {
+  const energyCurve = sampleEnergyCurve(tracks);
+  const sectionCounts = countBy(tracks.map((track) => track.mix?.section).filter(Boolean));
+  const roleCounts = countBy(tracks.map((track) => track.mix?.role).filter(Boolean));
+  const transitionHints = countBy(tracks.map((track) => track.mix?.transitionHint).filter(Boolean));
+  return {
+    energyCurve,
+    dominantSections: topKeys(sectionCounts, 4),
+    dominantRoles: topKeys(roleCounts, 5),
+    transitionHints: topKeys(transitionHints, 4),
+    confidence: getLearningConfidence(tracks, setConfig)
+  };
+}
+
+function sampleEnergyCurve(tracks, points = 7) {
+  if (!tracks.length) return [];
+  return Array.from({ length: points }, (_, index) => {
+    const position = points === 1 ? 0 : index / (points - 1);
+    const target = position * (tracks.length - 1);
+    const left = Math.floor(target);
+    const right = Math.min(tracks.length - 1, left + 1);
+    const progress = target - left;
+    const leftEnergy = tracks[left]?.mix?.energy ?? 50;
+    const rightEnergy = tracks[right]?.mix?.energy ?? leftEnergy;
+    return Math.round(leftEnergy + (rightEnergy - leftEnergy) * progress);
+  });
+}
+
+function getLearningConfidence(tracks, setConfig = {}) {
+  const count = tracks.length;
+  const layerRatio = count ? tracks.filter((track) => track.isLayer).length / count : 0;
+  const idRatio = count ? tracks.filter((track) => track.isId).length / count : 0;
+  if (count >= 20 && layerRatio < 0.35 && idRatio < 0.25) return "high";
+  if (count >= 10) return "medium";
+  return "low";
+}
+
+function countBy(values) {
+  return values.reduce((map, value) => {
+    map[value] = (map[value] ?? 0) + 1;
+    return map;
+  }, {});
+}
+
+function topKeys(counts, limit) {
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, limit)
+    .map(([key]) => key);
+}
+
+function getEnergyAnchorsForSet(tags) {
+  if (/focus|working|ambient|downtempo|minimal|no vocals/.test(tags)) return [18, 24, 32, 38, 36, 30, 22];
+  if (/lo-fi|jazzy|chillhop|nu soul|morning coffee|brunch/.test(tags)) return [16, 22, 30, 38, 34, 28, 20];
+  if (/dubstep|bass house|melodic bass|future bass|mainstage|festival/.test(tags)) return [50, 68, 86, 94, 82, 90, 72];
+  if (/uk garage|2-step|bassline|shuffle/.test(tags)) return [34, 48, 60, 74, 80, 72, 56];
+  if (/afro|amapiano|organic|deep/.test(tags)) return [36, 48, 60, 72, 78, 72, 58];
+  if (/disco|funk|groove|soulful/.test(tags)) return [30, 46, 60, 72, 78, 70, 52];
+  if (/hip hop|r&b|club edits|party/.test(tags)) return [28, 42, 58, 72, 82, 76, 54];
+  return [34, 48, 62, 76, 84, 76, 58];
+}
+
+function interpolateAnchors(anchors, position) {
+  const scaled = Math.max(0, Math.min(1, position)) * (anchors.length - 1);
+  const left = Math.floor(scaled);
+  const right = Math.min(anchors.length - 1, left + 1);
+  const progress = scaled - left;
+  return Math.round(anchors[left] + (anchors[right] - anchors[left]) * progress);
 }
 
 function parseTrackLine(input, config) {

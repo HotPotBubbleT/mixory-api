@@ -1181,64 +1181,108 @@ function buildReferencePattern(set, requestedVibe, recommendedGenre) {
   const tags = [...(set.genres ?? []), ...(set.vibes ?? []), requestedVibe, recommendedGenre].map(normalizeTag);
   const has = (...needles) => needles.some((needle) => tags.some((tag) => tag.includes(needle)));
   const density = getTransitionDensity(set);
+  let basePattern;
 
   if (has("dubstep", "bass", "mainstage", "festival", "future rave")) {
-    return {
+    basePattern = {
       flow: "festival-burst",
       energyCurve: [54, 72, 90, 96, 84, 92, 76],
       bpmRange: has("dubstep", "bass") ? "126-150" : "124-138",
       transitionDensity: density,
       transitionStyle: "quick drops, mashup peaks, short cooldowns"
     };
+    return applyLearnedReferencePattern(basePattern, set);
   }
 
   if (has("uk garage", "garage", "2 step", "2-step")) {
-    return {
+    basePattern = {
       flow: "uk-garage-bounce",
       energyCurve: [34, 48, 62, 74, 80, 70, 54],
       bpmRange: "124-138",
       transitionDensity: density,
       transitionStyle: "2-step bounce, vocal chops, shuffle-driven lift"
     };
+    return applyLearnedReferencePattern(basePattern, set);
   }
 
   if (has("melodic", "progressive", "sunrise", "sunset", "rooftop", "emotional")) {
-    return {
+    basePattern = {
       flow: "slow-rise-melodic",
       energyCurve: [28, 38, 50, 64, 78, 72, 58],
       bpmRange: "96-124",
       transitionDensity: density,
       transitionStyle: "long blends, harmonic lifts, controlled peak"
     };
+    return applyLearnedReferencePattern(basePattern, set);
   }
 
   if (has("afro", "deep", "spiritual", "after party", "dark club")) {
-    return {
+    basePattern = {
       flow: "deep-layered-groove",
       energyCurve: [40, 52, 62, 74, 82, 76, 64],
       bpmRange: "112-128",
       transitionDensity: density,
       transitionStyle: "percussion layers, vocal teases, late-night pressure"
     };
+    return applyLearnedReferencePattern(basePattern, set);
   }
 
   if (has("lo fi", "lo-fi", "jazz hop", "nu soul", "morning", "coffee", "working", "chill")) {
-    return {
+    basePattern = {
       flow: "low-pressure-groove",
       energyCurve: [16, 24, 34, 42, 36, 28, 20],
       bpmRange: "74-104",
       transitionDensity: density,
       transitionStyle: "soft fades, warm drums, minimal peaks"
     };
+    return applyLearnedReferencePattern(basePattern, set);
   }
 
-  return {
+  basePattern = {
     flow: "club-groove-rise",
     energyCurve: [36, 50, 64, 78, 86, 78, 60],
     bpmRange: "110-128",
     transitionDensity: density,
     transitionStyle: "groove-first blends, hook teases, peak-time lift"
   };
+  return applyLearnedReferencePattern(basePattern, set);
+}
+
+function applyLearnedReferencePattern(pattern, set) {
+  const learnedCurve = Array.isArray(set.learning?.energyCurve) ? set.learning.energyCurve : [];
+  const confidence = set.learning?.confidence ?? "low";
+  const weight = confidence === "high" ? 0.35 : confidence === "medium" ? 0.25 : 0.15;
+  const energyCurve = blendEnergyCurves(pattern.energyCurve, learnedCurve, weight);
+  const hints = Array.isArray(set.learning?.transitionHints) ? set.learning.transitionHints.slice(0, 2) : [];
+  return {
+    ...pattern,
+    energyCurve,
+    learnedWeight: weight,
+    learnedFrom: set.id,
+    transitionStyle: hints.length
+      ? `${pattern.transitionStyle}; learned hints: ${hints.join(", ")}`
+      : pattern.transitionStyle
+  };
+}
+
+function blendEnergyCurves(baseCurve = [], learnedCurve = [], learnedWeight = 0.25) {
+  if (!baseCurve.length || !learnedCurve.length) return baseCurve;
+  return baseCurve.map((value, index) => {
+    const learned = sampleCurveAt(learnedCurve, baseCurve.length, index);
+    return Math.round(value * (1 - learnedWeight) + learned * learnedWeight);
+  });
+}
+
+function sampleCurveAt(curve, targetLength, index) {
+  if (curve.length === targetLength) return Number(curve[index]) || 50;
+  const position = targetLength <= 1 ? 0 : index / (targetLength - 1);
+  const scaled = position * (curve.length - 1);
+  const left = Math.floor(scaled);
+  const right = Math.min(curve.length - 1, left + 1);
+  const progress = scaled - left;
+  const leftValue = Number(curve[left]) || 50;
+  const rightValue = Number(curve[right]) || leftValue;
+  return leftValue + (rightValue - leftValue) * progress;
 }
 
 function getTransitionDensity(set) {
