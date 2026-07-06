@@ -192,7 +192,7 @@ async function handleTrackTextAnalyze(req, res) {
   const musicBrainzMatchedCount = profiledTracks.filter((track) => track.musicBrainz?.matched).length;
   const matchedCount = profiledTracks.filter((track) => track.getSongBpm?.matched).length;
   const lastFmMatchedCount = profiledTracks.filter((track) => track.lastFm?.matched).length;
-  const profile = buildTextTrackProfile(profiledTracks, body.vibe, matchedCount, lastFmMatchedCount, musicBrainzMatchedCount, body.genre);
+  const profile = buildTextTrackProfile(profiledTracks, body.vibe, matchedCount, lastFmMatchedCount, musicBrainzMatchedCount, body.genre, body.dj);
   return sendJson(res, {
     source: "pasted-tracklist",
     enrichment: describeTrackEnrichment(matchedCount, lastFmMatchedCount, musicBrainzMatchedCount),
@@ -297,13 +297,16 @@ function parseTrackText(rawText) {
   const structuredTracks = parseStructuredPlaylistTracks(rawText);
   if (structuredTracks.length) return structuredTracks.slice(0, 500);
 
-  return normalizePlaylistText(rawText)
+  const lines = normalizePlaylistText(rawText)
     .slice(0, maxRawTextChars)
     .split(/\r\n|\n|\r/)
     .slice(0, maxTrackLines)
     .map((line) => normalizeTrackLine(line))
-    .filter(Boolean)
-    .map(parseTrackLine)
+    .filter(Boolean);
+  const dominantOrder = detectDominantTrackOrder(lines);
+
+  return lines
+    .map((line) => parseTrackLine(line, dominantOrder))
     .filter((track) => track.title || track.artist)
     .slice(0, 500);
 }
@@ -423,7 +426,7 @@ function normalizeTrackLine(line) {
     .replace(/\s+\|\s+/g, " - ");
 }
 
-function parseTrackLine(line) {
+function parseTrackLine(line, dominantOrder = "auto") {
   const byMatch = line.match(/^(.+?)\s+by\s+(.+)$/i);
   if (byMatch) {
     return cleanTrack({
@@ -439,7 +442,7 @@ function parseTrackLine(line) {
       left: separatorMatch[1],
       right: separatorMatch[2],
       raw: line
-    });
+    }, dominantOrder);
   }
 
   const csvParts = splitCsvLine(line);
@@ -448,7 +451,7 @@ function parseTrackLine(line) {
       left: csvParts[0],
       right: csvParts[1],
       raw: line
-    });
+    }, dominantOrder);
   }
 
   return cleanTrack({
@@ -458,9 +461,51 @@ function parseTrackLine(line) {
   });
 }
 
-function normalizeTrackOrder(track) {
-  const left = cleanTrackPart(track.left);
-  const right = cleanTrackPart(track.right);
+function detectDominantTrackOrder(lines = []) {
+  const votes = lines.reduce((counts, line) => {
+    const parts = getTrackOrderParts(line);
+    if (!parts) return counts;
+    const confidence = getTrackOrderConfidence(parts.left, parts.right);
+    if (confidence === "artist-title") counts.artistTitle += 1;
+    if (confidence === "title-artist") counts.titleArtist += 1;
+    return counts;
+  }, { artistTitle: 0, titleArtist: 0 });
+  const total = votes.artistTitle + votes.titleArtist;
+  if (total < 2) return "auto";
+
+  const winningCount = Math.max(votes.artistTitle, votes.titleArtist);
+  const losingCount = Math.min(votes.artistTitle, votes.titleArtist);
+  const hasClearMajority = winningCount >= total * 0.6 || winningCount - losingCount >= 2;
+  if (!hasClearMajority) return "auto";
+
+  return votes.artistTitle > votes.titleArtist ? "artist-title" : "title-artist";
+}
+
+function getTrackOrderParts(line) {
+  if (/^(.+?)\s+by\s+(.+)$/i.test(line)) return null;
+
+  const separatorMatch = line.match(/^(.+?)\s*(?:[-–—|/:]|\t)\s*(.+)$/);
+  if (separatorMatch) {
+    return {
+      left: separatorMatch[1],
+      right: separatorMatch[2]
+    };
+  }
+
+  const csvParts = splitCsvLine(line);
+  if (csvParts.length >= 2) {
+    return {
+      left: csvParts[0],
+      right: csvParts[1]
+    };
+  }
+
+  return null;
+}
+
+function getTrackOrderConfidence(leftValue, rightValue) {
+  const left = cleanTrackPart(leftValue);
+  const right = cleanTrackPart(rightValue);
   const leftAsArtist = scoreArtistLike(left) + scoreTitleLike(right);
   const rightAsArtist = scoreArtistLike(right) + scoreTitleLike(left);
   const leftAsTitlePenalty = scoreArtistLike(left) > 3 ? -3 : 0;
@@ -468,7 +513,17 @@ function normalizeTrackOrder(track) {
   const normalScore = leftAsArtist + rightAsTitlePenalty;
   const swappedScore = rightAsArtist + leftAsTitlePenalty;
 
-  if (swappedScore >= normalScore) {
+  if (normalScore > swappedScore + 1) return "artist-title";
+  if (swappedScore > normalScore + 1) return "title-artist";
+  return "unknown";
+}
+
+function normalizeTrackOrder(track, dominantOrder = "auto") {
+  const left = cleanTrackPart(track.left);
+  const right = cleanTrackPart(track.right);
+  const confidence = getTrackOrderConfidence(left, right);
+
+  if (confidence === "title-artist" || (confidence === "unknown" && dominantOrder === "title-artist")) {
     return cleanTrack({
       title: left,
       artist: right,
@@ -488,6 +543,9 @@ function scoreArtistLike(value = "") {
   const knownArtists = [
     "fred again", "peggy gou", "bicep", "disclosure", "ben bohmer", "ben böhmer", "keinemusik", "rampa", "adam port",
     "black coffee", "mochakk", "kaytranada", "bonobo", "caribou", "jungle", "sg lewis", "lane 8", "yotto",
+    "sultan shepard", "sultan shepherd", "sultan + shepard", "sultan + shepherd", "sultan & shepard", "sultan & shepherd",
+    "jerro", "le youth", "marsh", "embrz", "kx5", "rufus du sol", "rüfüs du sol", "rufus du sol", "tinlicker",
+    "nora en pure", "jan blomqvist", "bob moses", "ben bohmer", "ben böhmer", "luttrell", "eli & fur",
     "anyma", "artbat", "tale of us", "charlotte", "amelie", "above & beyond", "armin", "sza", "nujabes",
     "elderbrook", "chris lake", "gorgon city", "labjium", "josh butler", "j dilla", "shing02", "nujabes",
     "illyus barrientos", "illy's barrientos", "illys barrientos", "jack truant", "peter brown", "kink gong",
@@ -1050,7 +1108,7 @@ function getGenreSourceLabel(track) {
   return "local-estimate";
 }
 
-function buildTextTrackProfile(tracks, requestedVibe = "Sunset", matchedCount = 0, lastFmMatchedCount = 0, musicBrainzMatchedCount = 0, preferredGenre = "") {
+function buildTextTrackProfile(tracks, requestedVibe = "Sunset", matchedCount = 0, lastFmMatchedCount = 0, musicBrainzMatchedCount = 0, preferredGenre = "", djReference = "") {
   const normalizedPreferredGenre = normalizePreferredGenre(preferredGenre);
   const genreCounts = new Map();
   for (const track of tracks) {
@@ -1093,7 +1151,8 @@ function buildTextTrackProfile(tracks, requestedVibe = "Sunset", matchedCount = 
     requestedVibe,
     recommendedGenre,
     genres,
-    tracks
+    tracks,
+    djReference
   });
   const referenceText = describeReferenceMatch(referenceMatch);
   return {
@@ -1114,13 +1173,14 @@ function buildTextTrackProfile(tracks, requestedVibe = "Sunset", matchedCount = 
   };
 }
 
-function matchReferenceSets({ requestedVibe, recommendedGenre, genres, tracks }) {
+function matchReferenceSets({ requestedVibe, recommendedGenre, genres, tracks, djReference = "" }) {
   if (!referenceLibrary.sets.length) return null;
 
   const genreWeights = new Map(genres.map(([genre, value]) => [normalizeTag(genre), Number(value) || 0]));
   const requestedVibeTag = normalizeTag(requestedVibe);
   const recommendedGenreTag = normalizeTag(recommendedGenre);
   const inferredTrackTags = tracks.flatMap((track) => [track.artist, track.title, ...(track.genres ?? [])]).map(normalizeTag);
+  const djReferenceTags = normalizeDjReferenceTags(djReference);
 
   const scored = referenceLibrary.sets
     .map((set) => {
@@ -1141,6 +1201,11 @@ function matchReferenceSets({ requestedVibe, recommendedGenre, genres, tracks })
 
       const djName = normalizeTag(set.dj);
       if (djName && inferredTrackTags.some((tag) => tag.includes(djName) || djName.includes(tag))) score += 14;
+      if (djName && djReferenceTags.some((tag) => tag.includes(djName) || djName.includes(tag))) score += 10;
+      for (const tag of djReferenceTags) {
+        for (const genre of setGenres) score += getGenreAffinity(tag, genre) * 4;
+        for (const vibe of setVibes) score += getVibeAffinity(tag, vibe) * 3;
+      }
       if (set.sourceType === "user-curated") score += 4;
 
       return {
@@ -1161,6 +1226,37 @@ function matchReferenceSets({ requestedVibe, recommendedGenre, genres, tracks })
     alternatives: scored.slice(1).map((item) => serializeReferenceSet(item.set, item.score)),
     pattern
   };
+}
+
+function normalizeDjReferenceTags(value = "") {
+  const base = normalizeTag(value);
+  if (!base) return [];
+  const tags = new Set(
+    base
+      .split(/[,;/]+|\band\b|\+|&/)
+      .map(normalizeTag)
+      .filter((tag) => tag.length >= 3)
+  );
+  const profileTags = [
+    {
+      refs: ["lane 8", "sultan", "shepard", "shepherd", "ben bohmer", "ben bo hmer", "yotto", "marsh", "jerro", "le youth", "anjunadeep"],
+      tags: ["melodic house", "progressive house", "deep house", "sunset", "melodic"]
+    },
+    {
+      refs: ["keinemusik", "black coffee", "rampa", "adam port", "mochakk"],
+      tags: ["afro house", "organic house", "deep house", "sunset", "groove"]
+    },
+    {
+      refs: ["fred again", "peggy gou", "four tet", "bicep", "bonobo"],
+      tags: ["indie dance", "house", "uk garage", "warm", "club"]
+    }
+  ];
+  for (const profile of profileTags) {
+    if (profile.refs.some((ref) => base.includes(ref))) {
+      profile.tags.forEach((tag) => tags.add(tag));
+    }
+  }
+  return Array.from(tags);
 }
 
 function serializeReferenceSet(set, score) {
