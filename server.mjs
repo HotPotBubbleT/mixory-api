@@ -1256,12 +1256,20 @@ function applyLearnedReferencePattern(pattern, set) {
   const hints = Array.isArray(set.learning?.transitionHints) ? set.learning.transitionHints.slice(0, 2) : [];
   return {
     ...pattern,
+    smoothPriority: {
+      tempo: 0.34,
+      genreTexture: 0.23,
+      energyCurve: 0.22,
+      camelotKey: 0.16,
+      referencePattern: 0.05
+    },
+    harmonicRule: "Camelot-compatible keys are a soft bonus, not a hard requirement. Tempo, genre texture, and energy continuity stay higher priority for AutoMix / Mix playback.",
     energyCurve,
     learnedWeight: weight,
     learnedFrom: set.id,
     transitionStyle: hints.length
-      ? `${pattern.transitionStyle}; learned hints: ${hints.join(", ")}`
-      : pattern.transitionStyle
+      ? `${pattern.transitionStyle}; smooth-first harmonic support; learned hints: ${hints.join(", ")}`
+      : `${pattern.transitionStyle}; smooth-first harmonic support`
   };
 }
 
