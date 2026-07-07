@@ -332,7 +332,8 @@ function parseStructuredRecords(records) {
     .map((record) => cleanTrack({
       title: record[titleIndex] ?? "",
       artist: record[artistIndex] ?? "",
-      raw: `${record[titleIndex] ?? ""} - ${record[artistIndex] ?? ""}`
+      raw: `${record[titleIndex] ?? ""} - ${record[artistIndex] ?? ""}`,
+      source: "structured-playlist"
     }))
     .filter((track) => track.title && track.artist);
 }
@@ -604,6 +605,7 @@ function cleanTrack(track) {
     title,
     artist,
     raw: track.raw,
+    source: track.source || "",
     meta: ""
   };
 }
@@ -927,6 +929,13 @@ function mergeLastFmMatch(track, match) {
 }
 
 function resolveMatchedTrackOrder(track, match = {}) {
+  if (track.source === "structured-playlist") {
+    return {
+      title: track.title,
+      artist: track.artist
+    };
+  }
+
   if (match.candidateIndex !== 1) {
     return {
       title: track.title,
