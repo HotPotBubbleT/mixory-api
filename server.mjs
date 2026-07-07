@@ -8,7 +8,7 @@ const publicDir = join(rootDir, "outputs");
 const maxRequestBytes = 512 * 1024;
 const maxRawTextChars = 240_000;
 const maxTrackLines = 300;
-const appUserAgent = "Mixory/0.1 (https://hotpotbubblet.github.io/playlist-remixer/)";
+const appUserAgent = "Mixory/0.1 (https://mixoryflow.com)";
 const getSongBpmLookupLimit = 20;
 const lastFmLookupLimit = 20;
 const musicBrainzLookupLimit = 5;
@@ -1719,6 +1719,8 @@ function addCorsHeaders(reqOrRes, resMaybe) {
   const allowedOrigins = new Set([
     "http://127.0.0.1:3000",
     "http://localhost:3000",
+    "https://mixoryflow.com",
+    "https://www.mixoryflow.com",
     "https://hotpotbubblet.github.io"
   ]);
   res.setHeader("Access-Control-Allow-Origin", allowedOrigins.has(origin) ? origin : "*");

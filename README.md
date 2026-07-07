@@ -4,8 +4,8 @@ Mixory is a tracklist-to-DJ-set prototype. The current frontend is in `outputs/`
 
 ## Live demo
 
-- Frontend: https://hotpotbubblet.github.io/playlist-remixer/
-- Backend health check: https://mixory-api.onrender.com/api/health
+- Frontend: https://mixoryflow.com
+- Backend health check: https://api.mixoryflow.com/api/health
 
 ## Run locally
 
