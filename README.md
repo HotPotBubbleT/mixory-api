@@ -7,15 +7,6 @@ Mixory is a tracklist-to-DJ-set prototype. The current frontend is in `outputs/`
 - Frontend: https://mixoryflow.com
 - Backend health check: https://api.mixoryflow.com/api/health
 
-## Run locally
-
-1. Start the app:
-   ```bash
-   npm start
-   ```
-2. Open:
-   `http://127.0.0.1:3000`
-
 ## Current backend status
 
 - Serves the existing frontend from `outputs/`.
