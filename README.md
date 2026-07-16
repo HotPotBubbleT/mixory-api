@@ -1,6 +1,6 @@
 # Mixory
 
-Mixory is a tracklist-to-DJ-set prototype. The current frontend is in `outputs/`; the backend in `server.mjs` is a no-dependency Node server that can parse pasted tracklists or uploaded TXT/CSV text, estimate a first-pass music profile, and generate a DJ-style set direction.
+Mixory is a tracklist-to-DJ-set prototype. 
 
 ## Live demo
 
