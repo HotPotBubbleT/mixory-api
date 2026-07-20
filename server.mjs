@@ -1500,6 +1500,7 @@ async function handleFlowGenerate(req, res) {
   const sequence = makeFlowSequence(candidatePool, data, energyValues, desiredTracks, referencePattern);
   const rows = sequence.slice(0, desiredTracks).map((source, index) => {
     const transitionKey = getFlowTransitionKey(data, index, desiredTracks);
+    const energy = energyValues[index] ?? estimateFlowTrackEnergy(source, data);
     return {
       id: `${source.title}-${source.artist}-${index}`,
       title: source.title,
@@ -1507,7 +1508,14 @@ async function handleFlowGenerate(req, res) {
       meta: source.meta,
       transitionKey,
       transition: transitionKey,
-      energy: energyValues[index] ?? 50,
+      energy,
+      normalizedEnergy: Math.max(0, Math.min(1, Math.round(energy) / 100)),
+      role: getFlowPrimaryRole(source, data, index, desiredTracks),
+      roles: source.roles || [],
+      energyDirection: getFlowEnergyDirection(index, energyValues),
+      transitionReason: getFlowTransitionReason(source, sequence[index - 1], data, transitionKey),
+      section: getFlowSetSection(index, desiredTracks),
+      warnings: getFlowTransitionWarnings(source, sequence[index - 1], data),
       tempo: source.tempo,
       camelotKey: source.camelotKey,
       genre: source.genre,
@@ -1544,8 +1552,7 @@ function normalizeFlowTrack(track = {}, data = {}, index = 0) {
   const camelotKey = knownCamelotKey || estimateFlowKey(index);
   const genre = mapExternalGenre(track.genre || data.genre, data.genre);
   const metadataEstimated = Boolean(track.metadataEstimated || !knownTempo || !knownCamelotKey);
-
-  return {
+  const base = {
     title,
     artist,
     meta: String(track.meta || `${tempo} BPM / ${camelotKey}`).trim(),
@@ -1555,6 +1562,15 @@ function normalizeFlowTrack(track = {}, data = {}, index = 0) {
     durationMinutes: Number(track.durationMinutes) || 4,
     metadataEstimated,
     sourceIndex: Number.isFinite(Number(track.sourceIndex)) ? Number(track.sourceIndex) : index
+  };
+  const strategy = getGenreSequencingStrategy(genre || data.genre);
+  const dimensions = inferFlowTrackDimensions(base, data, strategy);
+
+  return {
+    ...base,
+    dimensions,
+    effectiveEnergy: getFlowEffectiveEnergy(dimensions, strategy),
+    roles: classifyFlowTrackRoles(base, dimensions, strategy, data)
   };
 }
 
@@ -1588,38 +1604,48 @@ function makeFlowSequence(sourcePool, data, energyValues, desiredTracks, referen
   const pool = sourcePool.slice(0, desiredTracks);
   if (pool.length <= 2) return pool;
 
-  const remaining = [...pool].sort((a, b) => estimateFlowTrackEnergy(a, data) - estimateFlowTrackEnergy(b, data));
-  const sequence = [];
-  const startIndex = findFlowBestStartIndex(remaining, data, referencePattern);
-  sequence.push(remaining.splice(startIndex, 1)[0]);
+  const strategy = getGenreSequencingStrategy(data.genre);
+  const sortedPool = [...pool].sort((a, b) => estimateFlowTrackEnergy(a, data) - estimateFlowTrackEnergy(b, data));
+  const seedIndexes = sortedPool
+    .map((track, index) => ({
+      index,
+      score: scoreFlowStartCandidate(track, data, referencePattern, sortedPool, strategy)
+    }))
+    .sort((a, b) => a.score - b.score)
+    .slice(0, Math.min(7, sortedPool.length))
+    .map((entry) => entry.index);
+
+  return seedIndexes
+    .map((seedIndex) => makeFlowGreedySequenceFromSeed(seedIndex, sortedPool, data, energyValues, referencePattern, strategy))
+    .map((candidate) => ({
+      ...candidate,
+      score: candidate.score + scoreFlowGlobalSequence(candidate.sequence, data, energyValues, strategy)
+    }))
+    .sort((a, b) => a.score - b.score)[0]?.sequence ?? sortedPool;
+}
+
+function makeFlowGreedySequenceFromSeed(seedIndex, sortedPool, data, energyValues, referencePattern, strategy) {
+  const sequence = [sortedPool[seedIndex]];
+  const remaining = sortedPool.filter((_, index) => index !== seedIndex);
+  let score = scoreFlowStartCandidate(sequence[0], data, referencePattern, sortedPool, strategy);
 
   while (remaining.length) {
-    const index = findFlowBestNextIndex(
-      sequence.at(-1),
-      remaining,
-      data,
-      energyValues[sequence.length] ?? 50,
-      sequence,
-      pool,
-      referencePattern
-    );
-    sequence.push(remaining.splice(index, 1)[0]);
+    const targetEnergy = energyValues[sequence.length] ?? 50;
+    const nextIndex = findFlowBestNextIndex(sequence.at(-1), remaining, data, targetEnergy, sequence, sortedPool, referencePattern);
+    const nextTrack = remaining.splice(nextIndex, 1)[0];
+    score += scoreFlowTransition(sequence.at(-1), nextTrack, data, targetEnergy, sequence, sortedPool, referencePattern, strategy);
+    sequence.push(nextTrack);
   }
 
-  return sequence;
+  return { sequence, score };
 }
 
 function findFlowBestStartIndex(tracks, data, referencePattern) {
-  const preference = getFlowPreferenceProfile(data);
-  const referencePriority = getFlowReferencePriority(referencePattern);
   let bestIndex = 0;
   let bestScore = Infinity;
+  const strategy = getGenreSequencingStrategy(data.genre);
   tracks.forEach((track, index) => {
-    const score = Math.abs(estimateFlowTrackEnergy(track, data) - preference.startTarget)
-      + Math.abs(track.tempo - getFlowTargetTempo(data, 0, tracks.length)) * preference.startTempoWeight
-      - getFlowReferenceStartFit(track, data, referencePattern) * referencePriority.referencePattern * 6
-      - getFlowDjReferenceAffinity(track, data) * preference.djReferenceWeight * 1.6
-      - getFlowMustHaveAffinity(track, parseFlowMustHaveTracks(data.mustHave)) * preference.mustHaveWeight;
+    const score = scoreFlowStartCandidate(track, data, referencePattern, tracks, strategy);
     if (score < bestScore) {
       bestScore = score;
       bestIndex = index;
@@ -1629,34 +1655,11 @@ function findFlowBestStartIndex(tracks, data, referencePattern) {
 }
 
 function findFlowBestNextIndex(previous, candidates, data, targetEnergy, sequence, poolContext, referencePattern) {
-  const preference = getFlowPreferenceProfile(data);
-  const referencePriority = getFlowReferencePriority(referencePattern);
   let bestIndex = 0;
   let bestScore = Infinity;
+  const strategy = getGenreSequencingStrategy(data.genre);
   candidates.forEach((candidate, index) => {
-    const tempoGap = Math.abs(candidate.tempo - previous.tempo);
-    const keyGap = getFlowCamelotDistance(previous.camelotKey, candidate.camelotKey);
-    const keyConfidence = previous.metadataEstimated || candidate.metadataEstimated ? 0.48 : 1;
-    const energyGap = Math.abs(estimateFlowTrackEnergy(candidate, data) - targetEnergy);
-    const genrePenalty = getFlowGenreCompatibilityPenalty(previous.genre, candidate.genre);
-    const referencePatternPenalty = getFlowReferencePatternPenalty(previous, candidate, data, targetEnergy, referencePattern);
-    const breathingPenalty = getFlowBreathingPenalty(previous, candidate, data, sequence.length, targetEnergy, poolContext.length);
-    const artistRepeatPenalty = getFlowArtistRepeatPenalty(sequence, candidate, data, poolContext);
-    const weights = {
-      tempo: 2.35 + referencePriority.tempo * 1.6,
-      key: 1.05 + referencePriority.camelotKey * 2,
-      energy: 1.05 + referencePriority.energyCurve * 1.4,
-      genre: 1.25 + referencePriority.genreTexture * 1.9
-    };
-    const score = tempoGap * weights.tempo * preference.tempoWeight
-      + keyGap * weights.key * preference.keyWeight * keyConfidence
-      + energyGap * weights.energy * preference.energyWeight
-      + genrePenalty * weights.genre * preference.genreWeight
-      + referencePatternPenalty * referencePriority.referencePattern
-      + breathingPenalty * preference.breathingMomentWeight
-      + artistRepeatPenalty * preference.artistRepeatWeight
-      - getFlowDjReferenceAffinity(candidate, data) * preference.djReferenceWeight
-      - getFlowMustHaveAffinity(candidate, parseFlowMustHaveTracks(data.mustHave)) * preference.mustHaveWeight;
+    const score = scoreFlowTransition(previous, candidate, data, targetEnergy, sequence, poolContext, referencePattern, strategy);
     if (score < bestScore) {
       bestScore = score;
       bestIndex = index;
@@ -1665,8 +1668,88 @@ function findFlowBestNextIndex(previous, candidates, data, targetEnergy, sequenc
   return bestIndex;
 }
 
+function scoreFlowStartCandidate(track, data, referencePattern, poolContext = [], strategy = getGenreSequencingStrategy(data.genre)) {
+  const preference = getFlowPreferenceProfile(data);
+  const referencePriority = getFlowReferencePriority(referencePattern);
+  const roleScore = getFlowRoleScore(track, ["intro", "warm-up", "groove"], strategy);
+  const peakPenalty = getFlowRoleScore(track, ["peak", "impact"], strategy) * strategy.startPeakPenalty;
+  return Math.abs(estimateFlowTrackEnergy(track, data) - preference.startTarget)
+    + Math.abs(track.tempo - getFlowTargetTempo(data, 0, poolContext.length || 8)) * preference.startTempoWeight
+    + peakPenalty
+    - roleScore * 10
+    - getFlowReferenceStartFit(track, data, referencePattern) * referencePriority.referencePattern * 6
+    - getFlowDjReferenceAffinity(track, data) * preference.djReferenceWeight * 1.6
+    - getFlowMustHaveAffinity(track, parseFlowMustHaveTracks(data.mustHave)) * preference.mustHaveWeight;
+}
+
+function scoreFlowTransition(previous, candidate, data, targetEnergy, sequence = [], poolContext = [], referencePattern = null, strategy = getGenreSequencingStrategy(data.genre)) {
+  const preference = getFlowPreferenceProfile(data);
+  const referencePriority = getFlowReferencePriority(referencePattern);
+  const weights = {
+    tempo: (2.35 + referencePriority.tempo * 1.6) * strategy.weights.tempo,
+    key: (1.05 + referencePriority.camelotKey * 2) * strategy.weights.key,
+    energy: (1.05 + referencePriority.energyCurve * 1.4) * strategy.weights.energy,
+    genre: (1.25 + referencePriority.genreTexture * 1.9) * strategy.weights.genre
+  };
+  const tempoGap = Math.abs(candidate.tempo - previous.tempo);
+  const tempoDirectionPenalty = getFlowTempoDirectionPenalty(previous, candidate, sequence.length, poolContext.length, strategy);
+  const keyGap = getFlowCamelotDistance(previous.camelotKey, candidate.camelotKey);
+  const keyConfidence = previous.metadataEstimated || candidate.metadataEstimated ? 0.48 : 1;
+  const candidateEnergy = estimateFlowTrackEnergy(candidate, data);
+  const previousEnergy = estimateFlowTrackEnergy(previous, data);
+  const energyGap = Math.abs(candidateEnergy - targetEnergy);
+  const genrePenalty = getFlowGenreCompatibilityPenalty(previous.genre, candidate.genre);
+  const referencePatternPenalty = getFlowReferencePatternPenalty(previous, candidate, data, targetEnergy, referencePattern);
+  const releasePenalty = getFlowReleasePenalty(previous, candidate, data, sequence.length, targetEnergy, poolContext.length, strategy);
+  const rolePenalty = getFlowRoleProgressionPenalty(sequence, candidate, data, targetEnergy, poolContext.length, strategy);
+  const vocalPenalty = getFlowVocalSpacingPenalty(sequence, candidate, strategy);
+  const texturePenalty = getFlowTextureContinuityPenalty(previous, candidate, strategy);
+  const peakPenalty = getFlowPeakTimingPenalty(candidate, sequence.length, poolContext.length, strategy);
+  const artistRepeatPenalty = getFlowArtistRepeatPenalty(sequence, candidate, data, poolContext);
+
+  return tempoGap * weights.tempo * preference.tempoWeight
+    + tempoDirectionPenalty
+    + keyGap * weights.key * preference.keyWeight * keyConfidence
+    + energyGap * weights.energy * preference.energyWeight
+    + genrePenalty * weights.genre * preference.genreWeight
+    + referencePatternPenalty * referencePriority.referencePattern
+    + releasePenalty * strategy.weights.release
+    + rolePenalty * strategy.weights.role
+    + vocalPenalty * strategy.weights.vocalSpacing
+    + texturePenalty
+    + peakPenalty
+    + artistRepeatPenalty * preference.artistRepeatWeight
+    - getFlowDjReferenceAffinity(candidate, data) * preference.djReferenceWeight
+    - getFlowMustHaveAffinity(candidate, parseFlowMustHaveTracks(data.mustHave)) * preference.mustHaveWeight;
+}
+
+function scoreFlowPartialShape(sequence = [], data = {}, energyValues = [], strategy = getGenreSequencingStrategy(data.genre)) {
+  if (sequence.length < 3) return 0;
+  return sequence.reduce((sum, track, index) => {
+    const targetEnergy = energyValues[index] ?? 50;
+    const rolePenalty = getFlowRoleProgressionPenalty(sequence.slice(0, index), track, data, targetEnergy, energyValues.length, strategy);
+    return sum + Math.abs(estimateFlowTrackEnergy(track, data) - targetEnergy) * 0.14 + rolePenalty * 0.18;
+  }, 0);
+}
+
+function scoreFlowGlobalSequence(sequence = [], data = {}, energyValues = [], strategy = getGenreSequencingStrategy(data.genre)) {
+  let score = 0;
+  let peakCountBeforeWindow = 0;
+  const peakStart = Math.floor(sequence.length * strategy.peakWindow[0]);
+  const peakEnd = Math.ceil(sequence.length * strategy.peakWindow[1]);
+  sequence.forEach((track, index) => {
+    const energy = estimateFlowTrackEnergy(track, data);
+    if (getFlowRoleScore(track, ["peak", "impact"], strategy) > 0.5 && index < peakStart) peakCountBeforeWindow += 1;
+    if (index === sequence.length - 1) score -= getFlowRoleScore(track, ["outro", "peak", "impact", "groove"], strategy) * strategy.outroBonus;
+    if (index >= peakStart && index <= peakEnd && energy >= 74) score -= 2.5;
+  });
+  score += peakCountBeforeWindow * strategy.earlyPeakPenalty;
+  return score;
+}
+
 function makeFlowVersionEnergyValues(data, count, referencePattern) {
-  const values = makeFlowEnergyValues(data.vibe, count, referencePattern);
+  const strategy = getGenreSequencingStrategy(data.genre);
+  const values = makeFlowEnergyValues(data.vibe, count, referencePattern, strategy);
   const preference = getFlowPreferenceProfile(data);
   const shapedValues = values.map((value, index) => {
     const position = values.length === 1 ? 0 : index / (values.length - 1);
@@ -1675,13 +1758,12 @@ function makeFlowVersionEnergyValues(data, count, referencePattern) {
     const middleLift = Math.sin(position * Math.PI) * preference.midLift;
     return Math.round(Math.max(8, Math.min(98, value + preference.energyBias + softIntro + softOutro + middleLift)));
   });
-  return applyFlowBreathingDips(shapedValues, data);
+  return applyFlowReleaseDips(shapedValues, data, strategy);
 }
 
-function makeFlowEnergyValues(vibe, count, referencePattern) {
-  const anchors = Array.isArray(referencePattern?.energyCurve) && referencePattern.energyCurve.length >= 3
-    ? referencePattern.energyCurve
-    : {
+function makeFlowEnergyValues(vibe, count, referencePattern, strategy = getGenreSequencingStrategy()) {
+  const baseAnchors = strategy.energyCurve;
+  const vibeAnchors = {
       Sunset: [34, 46, 62, 78, 86, 68],
       "Morning coffee": [18, 28, 38, 44, 36, 24],
       "After party": [52, 62, 78, 84, 74, 58],
@@ -1693,6 +1775,10 @@ function makeFlowEnergyValues(vibe, count, referencePattern) {
       "Pre-game": [42, 58, 72, 84, 88, 70],
       "Deep focus": [24, 32, 40, 46, 42, 30]
     }[vibe] ?? [32, 45, 58, 72, 66, 45];
+  const referenceAnchors = Array.isArray(referencePattern?.energyCurve) && referencePattern.energyCurve.length >= 3
+    ? referencePattern.energyCurve
+    : null;
+  const anchors = blendFlowEnergyAnchors(baseAnchors, vibeAnchors, referenceAnchors, strategy);
 
   return Array.from({ length: count }, (_, index) => {
     const position = count === 1 ? 0 : index / (count - 1);
@@ -1707,17 +1793,44 @@ function makeFlowEnergyValues(vibe, count, referencePattern) {
 }
 
 function applyFlowBreathingDips(values = [], data = {}) {
-  const indexes = getFlowBreathingIndexes(values.length, data);
+  return applyFlowReleaseDips(values, data, getGenreSequencingStrategy(data.genre));
+}
+
+function applyFlowReleaseDips(values = [], data = {}, strategy = getGenreSequencingStrategy(data.genre)) {
+  const indexes = getFlowReleaseIndexes(values.length, data, strategy);
   if (!indexes.length) return values;
   const shaped = [...values];
   indexes.forEach((index) => {
     const previous = shaped[index - 1] ?? shaped[index];
-    shaped[index] = Math.round(Math.max(20, Math.min(shaped[index] - 11, previous - 8, 56)));
+    const drop = strategy.releaseDepth ?? 10;
+    const floor = strategy.releaseFloor ?? 20;
+    const cap = strategy.releaseCap ?? 56;
+    shaped[index] = Math.round(Math.max(floor, Math.min(shaped[index] - drop, previous - Math.max(4, drop - 3), cap)));
     if (index + 1 < shaped.length && shaped[index + 1] < shaped[index] + 6) {
       shaped[index + 1] = Math.min(98, shaped[index] + 6);
     }
   });
   return shaped;
+}
+
+function blendFlowEnergyAnchors(baseAnchors = [], vibeAnchors = [], referenceAnchors = null, strategy = getGenreSequencingStrategy()) {
+  const length = Math.max(baseAnchors.length, vibeAnchors.length, referenceAnchors?.length || 0, 3);
+  const sample = (anchors, index) => {
+    if (!anchors?.length) return 50;
+    const position = length === 1 ? 0 : index / (length - 1);
+    const scaled = position * (anchors.length - 1);
+    const left = Math.floor(scaled);
+    const right = Math.min(anchors.length - 1, left + 1);
+    const progress = scaled - left;
+    return anchors[left] + (anchors[right] - anchors[left]) * progress;
+  };
+  return Array.from({ length }, (_, index) => {
+    const base = sample(baseAnchors, index);
+    const vibe = sample(vibeAnchors, index);
+    const reference = referenceAnchors ? sample(referenceAnchors, index) : base;
+    const value = base * 0.58 + vibe * 0.24 + reference * (referenceAnchors ? 0.18 : 0);
+    return Math.round(Math.max(8, Math.min(98, value + (strategy.energyBias || 0))));
+  });
 }
 
 function getFlowPreferenceProfile(data = {}) {
@@ -1754,6 +1867,216 @@ function getFlowReferencePriority(referencePattern) {
     camelotKey: Number(priority.camelotKey) || 0.16,
     referencePattern: Number(priority.referencePattern) || 0.05
   };
+}
+
+function getGenreSequencingStrategy(primaryGenre = "") {
+  const text = normalizeTag(primaryGenre).replace(/-/g, " ");
+  const key =
+    text.includes("tech house") ? "tech-house" :
+    text.includes("progressive") ? "progressive-house" :
+    text.includes("organic") ? "organic-house" :
+    text.includes("deep house") ? "deep-house" :
+    text.includes("afro") ? "afro-house" :
+    text.includes("trance") ? "trance" :
+    text.includes("drum and bass") || text.includes("dnb") ? "drum-and-bass" :
+    text.includes("melodic") ? "melodic-house" :
+    "house";
+  const shared = {
+    id: key,
+    energyCurve: [36, 48, 62, 74, 66, 82, 70],
+    releaseName: "breathing moment",
+    releaseRole: "breathing",
+    releaseEvery: 6,
+    releaseDepth: 10,
+    releaseFloor: 22,
+    releaseCap: 58,
+    peakWindow: [0.62, 0.9],
+    stableBpm: false,
+    startPeakPenalty: 9,
+    earlyPeakPenalty: 10,
+    outroBonus: 5,
+    roleOrder: ["intro", "warm-up", "groove", "builder", "vocal lift", "emotional lift", "impact", "peak", "reset", "outro"],
+    weights: {
+      tempo: 1,
+      key: 0.78,
+      energy: 1.08,
+      genre: 1,
+      release: 1,
+      role: 1,
+      vocalSpacing: 1,
+      groove: 1,
+      percussion: 1,
+      bass: 1
+    }
+  };
+  const strategies = {
+    "melodic-house": {
+      ...shared,
+      energyCurve: [30, 42, 56, 70, 52, 76, 86, 64],
+      releaseName: "breathing moment",
+      releaseRole: "breathing",
+      releaseEvery: 6,
+      releaseDepth: 13,
+      releaseCap: 54,
+      weights: { ...shared.weights, tempo: 1.08, key: 1.08, energy: 1.12, release: 1.28, role: 1.2, vocalSpacing: 1.05 }
+    },
+    "tech-house": {
+      ...shared,
+      energyCurve: [55, 62, 70, 82, 72, 84, 95, 88],
+      releaseName: "groove reset",
+      releaseRole: "reset",
+      releaseEvery: 4,
+      releaseDepth: 7,
+      releaseFloor: 52,
+      releaseCap: 74,
+      stableBpm: true,
+      peakWindow: [0.68, 0.95],
+      roleOrder: ["intro", "groove", "builder", "impact", "reset", "builder", "peak", "outro"],
+      weights: { ...shared.weights, tempo: 1.34, key: 0.58, energy: 1.12, genre: 1.15, release: 1.22, role: 1.15, vocalSpacing: 1.34, groove: 1.42, percussion: 1.3, bass: 1.32 }
+    },
+    "progressive-house": {
+      ...shared,
+      energyCurve: [35, 45, 58, 70, 82, 62, 75, 92, 68],
+      releaseName: "floating release",
+      releaseRole: "floating release",
+      releaseEvery: 6,
+      releaseDepth: 12,
+      releaseCap: 60,
+      peakWindow: [0.68, 0.92],
+      roleOrder: ["intro", "warm-up", "groove", "builder", "emotional lift", "floating release", "builder", "peak", "outro"],
+      weights: { ...shared.weights, tempo: 1.04, key: 1.06, energy: 1.1, release: 1.18, role: 1.22, vocalSpacing: 1.02 }
+    },
+    "organic-house": {
+      ...shared,
+      energyCurve: [25, 40, 55, 65, 78, 52, 68, 58],
+      releaseName: "natural breathing space",
+      releaseRole: "breathing",
+      releaseEvery: 5,
+      releaseDepth: 14,
+      releaseFloor: 28,
+      releaseCap: 56,
+      peakWindow: [0.55, 0.82],
+      roleOrder: ["intro", "warm-up", "groove", "builder", "emotional lift", "breathing", "groove", "outro"],
+      weights: { ...shared.weights, tempo: 1, key: 0.86, energy: 1.2, genre: 1.12, release: 1.28, role: 1.18, percussion: 1.18 }
+    },
+    "deep-house": {
+      ...shared,
+      energyCurve: [40, 52, 65, 50, 62, 72, 55, 70, 58],
+      releaseName: "deep reset",
+      releaseRole: "reset",
+      releaseEvery: 5,
+      releaseDepth: 9,
+      releaseFloor: 38,
+      releaseCap: 58,
+      peakWindow: [0.55, 0.88],
+      roleOrder: ["intro", "warm-up", "groove", "reset", "groove", "builder", "deep reset", "peak", "outro"],
+      weights: { ...shared.weights, tempo: 1.1, key: 0.86, energy: 1.18, genre: 1.12, release: 1.18, role: 1.1, groove: 1.24, bass: 1.12 }
+    },
+    "afro-house": {
+      ...shared,
+      energyCurve: [35, 50, 65, 72, 84, 66, 78, 94, 72],
+      releaseName: "percussion reset",
+      releaseRole: "percussion reset",
+      releaseEvery: 5,
+      releaseDepth: 9,
+      releaseFloor: 48,
+      releaseCap: 68,
+      peakWindow: [0.64, 0.92],
+      roleOrder: ["intro", "warm-up", "groove", "builder", "percussion reset", "vocal lift", "impact", "peak", "outro"],
+      weights: { ...shared.weights, tempo: 1.12, key: 0.62, energy: 1.08, genre: 1.12, release: 1.2, role: 1.16, percussion: 1.5, vocalSpacing: 1.14 }
+    },
+    trance: {
+      ...shared,
+      energyCurve: [35, 55, 72, 88, 52, 95, 75, 100, 70],
+      releaseName: "breakdown and release",
+      releaseRole: "floating release",
+      releaseEvery: 5,
+      releaseDepth: 17,
+      releaseFloor: 34,
+      releaseCap: 56,
+      peakWindow: [0.58, 0.95],
+      roleOrder: ["intro", "warm-up", "builder", "emotional lift", "floating release", "impact", "peak", "outro"],
+      weights: { ...shared.weights, tempo: 1.02, key: 1.22, energy: 1.04, genre: 1, release: 1.32, role: 1.3, vocalSpacing: 1.04 }
+    },
+    "drum-and-bass": {
+      ...shared,
+      energyCurve: [35, 52, 68, 88, 55, 72, 98, 65],
+      releaseName: "liquid release",
+      releaseRole: "liquid release",
+      releaseEvery: 4,
+      releaseDepth: 16,
+      releaseFloor: 40,
+      releaseCap: 60,
+      peakWindow: [0.58, 0.9],
+      roleOrder: ["intro", "builder", "impact", "peak", "liquid release", "builder", "peak", "outro"],
+      weights: { ...shared.weights, tempo: 1.18, key: 0.52, energy: 1.16, genre: 1.16, release: 1.26, role: 1.2, bass: 1.46, vocalSpacing: 0.96 }
+    },
+    house: shared
+  };
+  return strategies[key] ?? shared;
+}
+
+function inferFlowTrackDimensions(track = {}, data = {}, strategy = getGenreSequencingStrategy(data.genre)) {
+  const text = normalizeTag(`${track.title || ""} ${track.artist || ""} ${track.genre || data.genre || ""} ${track.meta || ""}`);
+  const tempo = Number(track.tempo) || estimateFlowBpm(data, 0);
+  const tempoEnergy = Math.max(0, Math.min(1, (tempo - 86) / 58));
+  const has = (regex) => regex.test(text);
+  const vocalPresence = has(/feat|featuring|ft\.|vocal|voice|love|you|me|heart|tonight|eyes|feel|dream|sing|chant|choir/) ? 0.8 : has(/dub|instrumental|tool|loop|drum|percussion/) ? 0.18 : 0.42;
+  const percussionIntensity = Math.max(0, Math.min(1, 0.36 + (has(/drum|percussion|afro|tribal|rhythm|groove|beat|chant|latin/) ? 0.34 : 0) + (strategy.id === "afro-house" || strategy.id === "tech-house" ? 0.18 : 0)));
+  const bassIntensity = Math.max(0, Math.min(1, 0.34 + (has(/bass|sub|drop|rave|banger|pressure|warehouse|raw|acid|dubstep|dnb|jungle/) ? 0.42 : 0) + (strategy.id === "drum-and-bass" ? 0.2 : 0)));
+  const acousticness = has(/acoustic|organic|piano|sunset|warm|soul|jazz|lofi|lo fi|ambient|natural|desert/) ? 0.7 : 0.22;
+  const emotionalIntensity = Math.max(0, Math.min(1, 0.3 + (has(/melodic|progressive|trance|dream|lost|love|moment|home|aurora|sunrise|soul|eyes/) ? 0.38 : 0) + (strategy.id === "melodic-house" || strategy.id === "progressive-house" ? 0.16 : 0)));
+  const dropIntensity = Math.max(0, Math.min(1, 0.18 + tempoEnergy * 0.35 + (has(/drop|impact|banger|festival|big room|rave|peak|overdrive|control/) ? 0.44 : 0)));
+  const breakdownIntensity = Math.max(0, Math.min(1, 0.18 + (has(/break|breakdown|release|float|dream|ambient|cinematic|pad/) ? 0.45 : 0) + (strategy.id === "trance" || strategy.id === "progressive-house" ? 0.16 : 0)));
+  return {
+    tempoEnergy,
+    vocalPresence,
+    percussionIntensity,
+    bassIntensity,
+    acousticness,
+    emotionalIntensity,
+    dropIntensity,
+    breakdownIntensity,
+    introSuitability: Math.max(0, Math.min(1, 0.45 + (has(/intro|extended|original|groove|loop|tool|warm|deep|sunset/) ? 0.35 : 0) - dropIntensity * 0.25)),
+    outroSuitability: Math.max(0, Math.min(1, 0.35 + (has(/outro|closing|dream|home|release|sunset|late|night|final/) ? 0.38 : 0) + emotionalIntensity * 0.16))
+  };
+}
+
+function getFlowEffectiveEnergy(dimensions = {}, strategy = getGenreSequencingStrategy()) {
+  const value = dimensions.tempoEnergy * 44
+    + dimensions.dropIntensity * 22
+    + dimensions.bassIntensity * strategy.weights.bass * 7
+    + dimensions.percussionIntensity * strategy.weights.percussion * 7
+    + dimensions.emotionalIntensity * 9
+    + dimensions.vocalPresence * 4
+    - dimensions.acousticness * 4;
+  return Math.round(Math.max(8, Math.min(98, value + 22)));
+}
+
+function classifyFlowTrackRoles(track = {}, dimensions = {}, strategy = getGenreSequencingStrategy(), data = {}) {
+  const roles = [];
+  const text = normalizeTag(`${track.title || ""} ${track.artist || ""} ${track.genre || data.genre || ""}`);
+  const energy = getFlowEffectiveEnergy(dimensions, strategy);
+  if (dimensions.introSuitability >= 0.58 || energy <= 42) roles.push("intro");
+  if (energy <= 54) roles.push("warm-up");
+  if (dimensions.percussionIntensity >= 0.58 || dimensions.bassIntensity >= 0.55) roles.push("groove");
+  if (energy >= 58 && energy <= 78) roles.push("builder");
+  if (dimensions.vocalPresence >= 0.66) roles.push("vocal lift");
+  if (dimensions.emotionalIntensity >= 0.62) roles.push("emotional lift");
+  if (dimensions.dropIntensity >= 0.62 || energy >= 78) roles.push("impact");
+  if (energy >= 86 || dimensions.dropIntensity >= 0.78) roles.push("peak");
+  if (dimensions.breakdownIntensity >= 0.58) roles.push("floating release");
+  if (dimensions.percussionIntensity >= 0.68 && dimensions.dropIntensity < 0.62) roles.push("percussion reset");
+  if (strategy.id === "drum-and-bass" && /liquid|soul|roll|vocal|deep/.test(text)) roles.push("liquid release");
+  if (energy <= 60 && dimensions.dropIntensity < 0.56 && dimensions.vocalPresence < 0.68) roles.push("reset");
+  if (strategy.id === "melodic-house" && energy <= 60 && dimensions.emotionalIntensity >= 0.5) roles.push("breathing");
+  if (dimensions.outroSuitability >= 0.56 || energy <= 60) roles.push("outro");
+  return [...new Set(roles.length ? roles : ["groove"])];
+}
+
+function getFlowRoleScore(track = {}, roles = [], strategy = getGenreSequencingStrategy()) {
+  const trackRoles = Array.isArray(track.roles) ? track.roles : [];
+  return roles.reduce((score, role) => Math.max(score, trackRoles.includes(role) ? 1 : 0), 0);
 }
 
 function getFlowReferenceStartFit(track = {}, data = {}, referencePattern) {
@@ -1802,66 +2125,95 @@ function isFlowBreathingContext(data = {}) {
 }
 
 function getFlowBreathingIndexes(count = 0, data = {}) {
-  if (!isFlowBreathingContext(data) || count < 8) return [];
+  return getFlowReleaseIndexes(count, data, getGenreSequencingStrategy(data.genre)).filter((index) => getFlowReleaseTransitionKey(data, index, count) === "breathing moment");
+}
+
+function getFlowReleaseIndexes(count = 0, data = {}, strategy = getGenreSequencingStrategy(data.genre)) {
+  if (count < 8) return [];
+  if (strategy.releaseName === "breathing moment" && !isFlowBreathingContext(data)) return [];
   const indexes = [];
-  let next = count <= 10 ? Math.floor(count / 2) : 5;
+  const interval = Math.max(4, Number(strategy.releaseEvery) || 6);
+  let next = count <= 10 ? Math.floor(count / 2) : Math.min(interval, Math.floor(count * 0.45));
   next = Math.max(4, Math.min(count - 3, next));
   while (next <= count - 3) {
     indexes.push(next);
-    next += 6;
+    next += interval;
   }
   return indexes;
 }
 
+function getFlowReleaseTransitionKey(data = {}, index = 0, count = 0) {
+  const strategy = getGenreSequencingStrategy(data.genre);
+  return getFlowReleaseIndexes(count, data, strategy).includes(index) ? strategy.releaseName : "";
+}
+
 function getFlowBreathingPenalty(previous = {}, candidate = {}, data = {}, nextIndex = 0, targetEnergy = 50, count = 0) {
-  if (!getFlowBreathingIndexes(count, data).includes(nextIndex)) return 0;
+  return getFlowReleasePenalty(previous, candidate, data, nextIndex, targetEnergy, count, getGenreSequencingStrategy(data.genre));
+}
+
+function getFlowReleasePenalty(previous = {}, candidate = {}, data = {}, nextIndex = 0, targetEnergy = 50, count = 0, strategy = getGenreSequencingStrategy(data.genre)) {
+  if (!getFlowReleaseIndexes(count, data, strategy).includes(nextIndex)) return 0;
   const candidateEnergy = estimateFlowTrackEnergy(candidate, data);
   const previousEnergy = estimateFlowTrackEnergy(previous, data);
   const energyMovement = candidateEnergy - previousEnergy;
   const tempoGap = Math.abs(candidate.tempo - previous.tempo);
   const genrePenalty = getFlowGenreCompatibilityPenalty(previous.genre, candidate.genre);
-  const textureFit = getFlowBreathingTextureFit(candidate, data);
+  const textureFit = getFlowReleaseTextureFit(candidate, data, strategy);
   let penalty = Math.abs(candidateEnergy - targetEnergy) * 1.05;
-  if (energyMovement > -3) penalty += 10 + Math.max(0, energyMovement) * 0.45;
-  if (energyMovement < -24) penalty += 7;
-  if (tempoGap > 8) penalty += (tempoGap - 8) * 1.4;
+  const expectsDrop = strategy.releaseDepth >= 11;
+  if (expectsDrop && energyMovement > -3) penalty += 10 + Math.max(0, energyMovement) * 0.45;
+  if (!expectsDrop && energyMovement < -18) penalty += 8;
+  if (energyMovement < -26) penalty += 7;
+  if (tempoGap > (strategy.stableBpm ? 5 : 8)) penalty += (tempoGap - (strategy.stableBpm ? 5 : 8)) * 1.4;
   if (genrePenalty >= 12) penalty += 5;
   if (candidate.metadataEstimated) penalty += 2.5;
-  penalty -= textureFit * 8;
+  penalty -= textureFit * 9;
   return Math.max(-5, penalty);
 }
 
 function getFlowBreathingTextureFit(track = {}, data = {}) {
+  return getFlowReleaseTextureFit(track, data, getGenreSequencingStrategy(data.genre));
+}
+
+function getFlowReleaseTextureFit(track = {}, data = {}, strategy = getGenreSequencingStrategy(data.genre)) {
   const text = normalizeTag(`${track.title || ""} ${track.artist || ""} ${track.genre || data.genre || ""}`);
   const family = getFlowGenreFamily(track.genre || data.genre || "");
+  const dimensions = track.dimensions || inferFlowTrackDimensions(track, data, strategy);
   let score = 0;
   if (family === "deep-melodic") score += 0.75;
   if (family === "chill-soul") score += 0.55;
   if (family === "house-groove") score += 0.25;
+  if (strategy.releaseRole === "reset" && dimensions.percussionIntensity >= 0.48 && dimensions.dropIntensity < 0.66) score += 0.45;
+  if (strategy.releaseRole === "percussion reset" && dimensions.percussionIntensity >= 0.62) score += 0.62;
+  if (strategy.releaseRole === "floating release" && dimensions.breakdownIntensity >= 0.52) score += 0.62;
+  if (strategy.releaseRole === "liquid release" && /liquid|soul|roll|deep|vocal/.test(text)) score += 0.7;
   if (/melodic|progressive|organic|deep|afro|ambient|chill|sunset|dub|vocal|piano|dream|night|love|lost|float|slow|warm/.test(text)) score += 0.35;
   if (/mainstage|big room|dubstep|drum and bass|dnb|bass|rave|festival|drop|hard/.test(text)) score -= 0.35;
   return Math.max(0, Math.min(1, score));
 }
 
 function getFlowTransitionKey(data, index, count) {
-  if (getFlowBreathingIndexes(count, data).includes(index)) return "breathing moment";
+  const releaseKey = getFlowReleaseTransitionKey(data, index, count);
+  if (releaseKey) return releaseKey;
   const genreNotes = {
     House: ["Deep house opener", "percussion tease", "low-pass blend", "bassline switch"],
+    "Tech house": ["groove-forward transition", "bassline switch", "percussion tease", "impact drop switch"],
     "Deep house": ["Deep house opener", "warm pad blend", "low-pass blend", "late-night handoff"],
-    "Melodic house": ["melodic handoff", "warm pad blend", "breathing moment", "dreamy outro"],
-    "Progressive house": ["melodic handoff", "long blend", "subtle key shift", "wide intro"],
+    "Melodic house": ["melodic handoff", "warm pad blend", "emotional phrase handoff", "dreamy outro"],
+    "Progressive house": ["melodic handoff", "long blend", "floating release", "wide breakdown resolve"],
+    "Organic house": ["organic percussion blend", "natural breathing space", "warm pad blend", "soft percussion lift"],
     "Melodic techno": ["melodic handoff", "long blend", "tension lift", "controlled peak"],
     "Lo-fi": ["soft fade", "warm drums", "subtle key shift", "dreamy outro"],
     "Nu soul": ["warm drums", "soft fade", "vocal bridge", "subtle key shift"],
     "UK garage": ["2-step bounce", "vocal chop bridge", "shuffle lift", "bassline switch"],
     Disco: ["groove handoff", "bassline switch", "hook tease", "warm drums"],
     Techno: ["drum bridge", "tension lift", "filter push", "controlled peak"],
-    Trance: ["melodic handoff", "long blend", "tension lift", "controlled peak"],
+    Trance: ["melodic handoff", "long blend", "breakdown and release", "controlled peak"],
     Dubstep: ["impact cut", "drop contrast", "bass reset", "short cooldown"],
     "Bass house": ["bassline switch", "drum bridge", "filter push", "impact cut"],
     "Mainstage / Big room": ["wide intro", "tension lift", "drop contrast", "short cooldown"],
-    "Afro house": ["percussion tease", "vocal bridge", "deep house opener", "warm pad blend"],
-    "Drum and bass": ["drum bridge", "bass reset", "short cooldown", "impact cut"],
+    "Afro house": ["percussion tease", "percussion reset", "deep house opener", "warm pad blend"],
+    "Drum and bass": ["drum bridge", "liquid release", "bass reset", "impact cut"],
     "Indie dance": ["groove handoff", "hook tease", "warm pad blend", "dreamy outro"]
   };
   const vibeTransitions = {
@@ -1881,7 +2233,138 @@ function getFlowTransitionKey(data, index, count) {
   return index % 3 === 0 ? notes[index % notes.length] : transitions[index % transitions.length];
 }
 
+function getFlowTempoDirectionPenalty(previous = {}, candidate = {}, nextIndex = 0, count = 0, strategy = getGenreSequencingStrategy()) {
+  const diff = (candidate.tempo || 0) - (previous.tempo || candidate.tempo || 0);
+  if (!Number.isFinite(diff)) return 0;
+  const position = count <= 1 ? 0 : nextIndex / (count - 1);
+  let penalty = 0;
+  if (strategy.stableBpm && Math.abs(diff) > 2.5) penalty += (Math.abs(diff) - 2.5) * 2.4;
+  if (position > 0.25 && position < 0.78 && diff < -4) penalty += Math.abs(diff) * 1.1;
+  if (strategy.id === "progressive-house" && diff < -5 && position < 0.75) penalty += Math.abs(diff) * 0.9;
+  if (strategy.id === "drum-and-bass" && Math.abs(diff) > 8) penalty += (Math.abs(diff) - 8) * 1.1;
+  return penalty;
+}
+
+function getFlowRoleProgressionPenalty(sequence = [], candidate = {}, data = {}, targetEnergy = 50, count = 0, strategy = getGenreSequencingStrategy(data.genre)) {
+  const index = sequence.length;
+  const position = count <= 1 ? 0 : index / Math.max(1, count - 1);
+  const targetRole = strategy.roleOrder[Math.min(strategy.roleOrder.length - 1, Math.floor(position * strategy.roleOrder.length))];
+  let penalty = 0;
+  if (targetRole && !candidate.roles?.includes(targetRole)) {
+    const softRoles = {
+      intro: ["warm-up", "groove"],
+      "warm-up": ["intro", "groove"],
+      groove: ["warm-up", "builder", "reset", "percussion reset"],
+      builder: ["groove", "vocal lift", "emotional lift", "impact"],
+      "vocal lift": ["builder", "emotional lift"],
+      "emotional lift": ["builder", "vocal lift", "floating release"],
+      impact: ["builder", "peak"],
+      peak: ["impact", "builder"],
+      reset: ["groove", "breathing", "percussion reset", "liquid release"],
+      "deep reset": ["reset", "groove"],
+      breathing: ["reset", "floating release", "warm-up"],
+      "floating release": ["breathing", "emotional lift", "reset"],
+      "percussion reset": ["reset", "groove"],
+      "liquid release": ["reset", "warm-up"],
+      outro: ["warm-up", "groove", "emotional lift", "peak"]
+    };
+    penalty += softRoles[targetRole]?.some((role) => candidate.roles?.includes(role)) ? 2.5 : 7;
+  }
+  const energy = estimateFlowTrackEnergy(candidate, data);
+  if (position < 0.18 && (candidate.roles?.includes("peak") || energy > 82)) penalty += strategy.earlyPeakPenalty;
+  if (position > 0.8 && energy < 42 && !candidate.roles?.includes("outro")) penalty += 5;
+  if (index > 1) {
+    const previousTwo = sequence.slice(-2);
+    const highImpactRun = previousTwo.every((track) => track.roles?.some((role) => ["peak", "impact"].includes(role)));
+    if (highImpactRun && candidate.roles?.some((role) => ["peak", "impact"].includes(role))) penalty += 9;
+    const releaseRun = previousTwo.every((track) => track.roles?.some((role) => ["breathing", "floating release", "reset", "liquid release"].includes(role)));
+    if (releaseRun && candidate.roles?.some((role) => ["breathing", "floating release", "reset", "liquid release"].includes(role))) penalty += 8;
+  }
+  return penalty + Math.abs(energy - targetEnergy) * 0.04;
+}
+
+function getFlowVocalSpacingPenalty(sequence = [], candidate = {}, strategy = getGenreSequencingStrategy()) {
+  const vocalPresence = candidate.dimensions?.vocalPresence ?? 0.4;
+  if (vocalPresence < 0.66) return 0;
+  const recentVocals = sequence.slice(-2).filter((track) => (track.dimensions?.vocalPresence ?? 0.4) >= 0.66).length;
+  if (!recentVocals) return 0;
+  return recentVocals * (strategy.id === "tech-house" || strategy.id === "afro-house" ? 7 : 5);
+}
+
+function getFlowTextureContinuityPenalty(previous = {}, candidate = {}, strategy = getGenreSequencingStrategy()) {
+  const left = previous.dimensions || {};
+  const right = candidate.dimensions || {};
+  const grooveGap = Math.abs((left.percussionIntensity ?? 0.5) - (right.percussionIntensity ?? 0.5));
+  const bassGap = Math.abs((left.bassIntensity ?? 0.5) - (right.bassIntensity ?? 0.5));
+  const moodGap = Math.abs((left.emotionalIntensity ?? 0.5) - (right.emotionalIntensity ?? 0.5));
+  return grooveGap * 6 * strategy.weights.groove + bassGap * 5 * strategy.weights.bass + moodGap * 3;
+}
+
+function getFlowPeakTimingPenalty(candidate = {}, nextIndex = 0, count = 0, strategy = getGenreSequencingStrategy()) {
+  const isPeak = candidate.roles?.some((role) => role === "peak" || role === "impact") || false;
+  if (!isPeak || count < 6) return 0;
+  const position = count <= 1 ? 0 : nextIndex / (count - 1);
+  if (position < strategy.peakWindow[0]) return (strategy.peakWindow[0] - position) * strategy.earlyPeakPenalty;
+  if (position > 0.96) return 2;
+  return position <= strategy.peakWindow[1] ? -2 : 0;
+}
+
+function getFlowPrimaryRole(track = {}, data = {}, index = 0, count = 0) {
+  const strategy = getGenreSequencingStrategy(data.genre);
+  const position = count <= 1 ? 0 : index / (count - 1);
+  const releaseKey = getFlowReleaseTransitionKey(data, index, count);
+  if (releaseKey) return strategy.releaseRole;
+  if (index === 0) return track.roles?.includes("intro") ? "intro" : "warm-up";
+  if (index === count - 1) return track.roles?.includes("outro") ? "outro" : "closing groove";
+  if (position >= strategy.peakWindow[0] && track.roles?.includes("peak")) return "peak";
+  const orderedRole = strategy.roleOrder.find((role) => track.roles?.includes(role));
+  return orderedRole || track.roles?.[0] || "groove";
+}
+
+function getFlowEnergyDirection(index = 0, values = []) {
+  const previous = values[index - 1];
+  const current = values[index];
+  const next = values[index + 1];
+  if (!Number.isFinite(current)) return "steady";
+  if (Number.isFinite(previous) && current < previous - 8) return "release";
+  if (Number.isFinite(next) && next > current + 8) return "build";
+  if (Number.isFinite(next) && next < current - 8) return "peak-to-release";
+  return "steady";
+}
+
+function getFlowSetSection(index = 0, count = 0) {
+  const position = count <= 1 ? 0 : index / (count - 1);
+  if (position < 0.18) return "intro";
+  if (position < 0.42) return "build";
+  if (position < 0.72) return "middle";
+  if (position < 0.9) return "peak";
+  return "outro";
+}
+
+function getFlowTransitionReason(track = {}, previous = null, data = {}, transitionKey = "") {
+  if (!previous) return "opens with a controlled intro or groove";
+  const tempoGap = Math.abs((track.tempo || 0) - (previous.tempo || track.tempo || 0));
+  const keyGap = getFlowCamelotDistance(previous.camelotKey, track.camelotKey);
+  const release = /reset|release|breathing|breakdown/.test(normalizeTag(transitionKey));
+  if (release) return `${transitionKey} lowers density while keeping the flow connected`;
+  if (tempoGap <= 3 && keyGap <= 1.5) return "close BPM and Camelot movement support a smooth blend";
+  if (tempoGap <= 5) return "tempo stays close while texture or energy moves the set forward";
+  return "placed for energy storytelling despite a wider technical gap";
+}
+
+function getFlowTransitionWarnings(track = {}, previous = null, data = {}) {
+  if (!previous) return [];
+  const warnings = [];
+  const tempoGap = Math.abs((track.tempo || 0) - (previous.tempo || track.tempo || 0));
+  const keyGap = getFlowCamelotDistance(previous.camelotKey, track.camelotKey);
+  if (tempoGap >= 9) warnings.push("large BPM jump");
+  if (keyGap >= 4 && !track.metadataEstimated && !previous.metadataEstimated) warnings.push("wide Camelot move");
+  if ((track.dimensions?.vocalPresence ?? 0) >= 0.66 && (previous.dimensions?.vocalPresence ?? 0) >= 0.66) warnings.push("back-to-back vocal hooks");
+  return warnings;
+}
+
 function estimateFlowTrackEnergy(track, data) {
+  if (Number.isFinite(Number(track.effectiveEnergy))) return Number(track.effectiveEnergy);
   const tempo = Number(track.tempo) || estimateFlowBpm(data, 0);
   const genre = normalizeTag(track.genre || data.genre);
   const tempoScore = Math.max(0, Math.min(100, ((tempo - 76) / 64) * 100));
@@ -2104,8 +2587,10 @@ function normalizeGenrePercentages(genres) {
 function normalizePreferredGenre(genre = "") {
   const supportedGenres = new Set([
     "House",
+    "Tech house",
     "Deep house",
     "Melodic house",
+    "Organic house",
     "Bass house",
     "Disco",
     "Trance",
@@ -2130,6 +2615,8 @@ function mapExternalGenre(genre = "", preferredGenre = "") {
   if (value.includes("uk garage") || value.includes("2-step") || value.includes("2 step") || /\bgarage\b/.test(value)) return "UK garage";
   if (value.includes("dubstep") || value.includes("melodic bass")) return "Dubstep";
   if (value.includes("bass house")) return "Bass house";
+  if (value.includes("tech house")) return "Tech house";
+  if (value.includes("organic house") || value.includes("organic downtempo")) return "Organic house";
   if (value.includes("disco") || value.includes("nu-disco") || value.includes("funk house") || value.includes("funky house")) return "Disco";
   if (value.includes("deep house")) return "Deep house";
   if (value.includes("melodic house")) return "Melodic house";
@@ -2155,6 +2642,8 @@ function inferGenreFromTrack(track, preferredGenre = "") {
     ["UK garage", ["uk garage", "2-step", "2 step", "garage", "fred again", "sammy virji", "interplanetary criminal", "joy anonymous", "ts7"]],
     ["Dubstep", ["dubstep", "skrillex", "illenium", "slander", "excision", "subtronics", "wooli", "ray volpe", "space laces"]],
     ["Bass house", ["bass house", "malaa", "tchami", "habstrakt", "dj snake", "joyryde", "knock2"]],
+    ["Tech house", ["tech house", "chris lake", "fisher", "john summit", "mau p", "cloonee", "pawsa", "green velvet", "walker & royce"]],
+    ["Organic house", ["organic house", "satori", "bedouin", "monolink", "yokoo", "lee burridge", "all day i dream", "desert", "organic"]],
     ["Disco", ["disco", "nu-disco", "nu disco", "funky house", "funk house", "purple disco machine", "dimitri from paris", "folamour", "cerrone", "chic"]],
     ["Drum and bass", ["drum and bass", "dnb", "breakbeat", "jungle", "sub focus", "chase", "status"]],
     ["Melodic house", ["melodic house", "shingo", "lane 8", "sultan", "shepard", "jerro", "embrz", "ben bohmer", "ben böhmer", "anjunadeep"]],
