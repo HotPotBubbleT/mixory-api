@@ -76,6 +76,10 @@ const server = createServer(async (req, res) => {
       return await handleTrackTextAnalyze(req, res);
     }
 
+    if (url.pathname === "/api/flow/generate" && req.method === "POST") {
+      return await handleFlowGenerate(req, res);
+    }
+
     return await serveStatic(url.pathname, res);
   } catch (error) {
     console.error(error);
@@ -1466,6 +1470,593 @@ function getVibeAffinity(inputVibe, setVibe) {
     ["workout", "high energy", "heavy", "festival"]
   ];
   return groups.some((group) => group.some((tag) => inputVibe.includes(tag)) && group.some((tag) => setVibe.includes(tag))) ? 0.7 : 0;
+}
+
+async function handleFlowGenerate(req, res) {
+  const body = await readJson(req);
+  const data = normalizeFlowRequestData(body.data ?? body);
+  const tracks = Array.isArray(body.tracks)
+    ? body.tracks.slice(0, maxTrackLines).map((track, index) => normalizeFlowTrack(track, data, index)).filter((track) => track.title)
+    : [];
+
+  if (tracks.length < 2) {
+    return sendJson(res, {
+      error: "At least two tracks are required to generate a flow."
+    }, 400);
+  }
+
+  const requestedProfile = body.profile && typeof body.profile === "object" ? body.profile : null;
+  const profile = requestedProfile ?? buildTextTrackProfile(tracks, data.vibe, 0, 0, 0, data.genre, data.dj);
+  const desiredTracks = Math.min(getFlowDesiredTrackCount(data.length), tracks.length);
+  const referencePattern = profile.referenceMatch?.pattern ?? matchReferenceSets({
+    requestedVibe: data.vibe,
+    recommendedGenre: profile.recommendedGenre ?? data.genre,
+    genres: profile.genres ?? [[data.genre, 100]],
+    tracks,
+    djReference: data.dj
+  })?.pattern ?? null;
+  const energyValues = makeFlowVersionEnergyValues(data, desiredTracks, referencePattern);
+  const candidatePool = selectFlowCandidatePool(tracks, data, desiredTracks);
+  const sequence = makeFlowSequence(candidatePool, data, energyValues, desiredTracks, referencePattern);
+  const rows = sequence.slice(0, desiredTracks).map((source, index) => {
+    const transitionKey = getFlowTransitionKey(data, index, desiredTracks);
+    return {
+      id: `${source.title}-${source.artist}-${index}`,
+      title: source.title,
+      artist: source.artist,
+      meta: source.meta,
+      transitionKey,
+      transition: transitionKey,
+      energy: energyValues[index] ?? 50,
+      tempo: source.tempo,
+      camelotKey: source.camelotKey,
+      genre: source.genre,
+      metadataEstimated: source.metadataEstimated,
+      risk: null
+    };
+  });
+
+  return sendJson(res, {
+    source: "backend-flow",
+    trackCount: rows.length,
+    referencePattern,
+    rows
+  });
+}
+
+function normalizeFlowRequestData(data = {}) {
+  return {
+    length: Number(data.length) || 45,
+    genre: normalizePreferredGenre(data.genre) || "House",
+    vibe: String(data.vibe || "Sunset"),
+    dj: String(data.dj || ""),
+    mustHave: String(data.mustHave || ""),
+    notes: String(data.notes || "")
+  };
+}
+
+function normalizeFlowTrack(track = {}, data = {}, index = 0) {
+  const title = String(track.title || "").trim() || `Track ${index + 1}`;
+  const artist = String(track.artist || "").trim();
+  const knownTempo = Number(track.tempo) || getFlowTempoFromMeta(track.meta);
+  const knownCamelotKey = normalizeFlowCamelotKey(track.camelotKey || track.openKey || getFlowCamelotFromMeta(track.meta) || track.keyOf);
+  const tempo = knownTempo || estimateFlowBpm(data, index);
+  const camelotKey = knownCamelotKey || estimateFlowKey(index);
+  const genre = mapExternalGenre(track.genre || data.genre, data.genre);
+  const metadataEstimated = Boolean(track.metadataEstimated || !knownTempo || !knownCamelotKey);
+
+  return {
+    title,
+    artist,
+    meta: String(track.meta || `${tempo} BPM / ${camelotKey}`).trim(),
+    tempo,
+    camelotKey,
+    genre,
+    durationMinutes: Number(track.durationMinutes) || 4,
+    metadataEstimated,
+    sourceIndex: Number.isFinite(Number(track.sourceIndex)) ? Number(track.sourceIndex) : index
+  };
+}
+
+function getFlowDesiredTrackCount(length) {
+  return Math.max(6, Math.round((Number(length) || 45) / 4));
+}
+
+function selectFlowCandidatePool(sourcePool, data, desiredTracks) {
+  if (!sourcePool.length || sourcePool.length <= desiredTracks) return sourcePool;
+  const mustHaveTracks = parseFlowMustHaveTracks(data.mustHave);
+  if (!mustHaveTracks.length) return sourcePool.slice(0, desiredTracks);
+
+  const selected = [];
+  const selectedIndexes = new Set();
+  sourcePool.forEach((track, index) => {
+    if (getFlowMustHaveAffinity(track, mustHaveTracks) < 0.58) return;
+    selected.push(track);
+    selectedIndexes.add(index);
+  });
+
+  sourcePool.forEach((track, index) => {
+    if (selected.length >= desiredTracks) return;
+    if (selectedIndexes.has(index)) return;
+    selected.push(track);
+  });
+
+  return selected.slice(0, desiredTracks);
+}
+
+function makeFlowSequence(sourcePool, data, energyValues, desiredTracks, referencePattern) {
+  const pool = sourcePool.slice(0, desiredTracks);
+  if (pool.length <= 2) return pool;
+
+  const remaining = [...pool].sort((a, b) => estimateFlowTrackEnergy(a, data) - estimateFlowTrackEnergy(b, data));
+  const sequence = [];
+  const startIndex = findFlowBestStartIndex(remaining, data, referencePattern);
+  sequence.push(remaining.splice(startIndex, 1)[0]);
+
+  while (remaining.length) {
+    const index = findFlowBestNextIndex(
+      sequence.at(-1),
+      remaining,
+      data,
+      energyValues[sequence.length] ?? 50,
+      sequence,
+      pool,
+      referencePattern
+    );
+    sequence.push(remaining.splice(index, 1)[0]);
+  }
+
+  return sequence;
+}
+
+function findFlowBestStartIndex(tracks, data, referencePattern) {
+  const preference = getFlowPreferenceProfile(data);
+  const referencePriority = getFlowReferencePriority(referencePattern);
+  let bestIndex = 0;
+  let bestScore = Infinity;
+  tracks.forEach((track, index) => {
+    const score = Math.abs(estimateFlowTrackEnergy(track, data) - preference.startTarget)
+      + Math.abs(track.tempo - getFlowTargetTempo(data, 0, tracks.length)) * preference.startTempoWeight
+      - getFlowReferenceStartFit(track, data, referencePattern) * referencePriority.referencePattern * 6
+      - getFlowDjReferenceAffinity(track, data) * preference.djReferenceWeight * 1.6
+      - getFlowMustHaveAffinity(track, parseFlowMustHaveTracks(data.mustHave)) * preference.mustHaveWeight;
+    if (score < bestScore) {
+      bestScore = score;
+      bestIndex = index;
+    }
+  });
+  return bestIndex;
+}
+
+function findFlowBestNextIndex(previous, candidates, data, targetEnergy, sequence, poolContext, referencePattern) {
+  const preference = getFlowPreferenceProfile(data);
+  const referencePriority = getFlowReferencePriority(referencePattern);
+  let bestIndex = 0;
+  let bestScore = Infinity;
+  candidates.forEach((candidate, index) => {
+    const tempoGap = Math.abs(candidate.tempo - previous.tempo);
+    const keyGap = getFlowCamelotDistance(previous.camelotKey, candidate.camelotKey);
+    const keyConfidence = previous.metadataEstimated || candidate.metadataEstimated ? 0.48 : 1;
+    const energyGap = Math.abs(estimateFlowTrackEnergy(candidate, data) - targetEnergy);
+    const genrePenalty = getFlowGenreCompatibilityPenalty(previous.genre, candidate.genre);
+    const referencePatternPenalty = getFlowReferencePatternPenalty(previous, candidate, data, targetEnergy, referencePattern);
+    const breathingPenalty = getFlowBreathingPenalty(previous, candidate, data, sequence.length, targetEnergy, poolContext.length);
+    const artistRepeatPenalty = getFlowArtistRepeatPenalty(sequence, candidate, data, poolContext);
+    const weights = {
+      tempo: 2.35 + referencePriority.tempo * 1.6,
+      key: 1.05 + referencePriority.camelotKey * 2,
+      energy: 1.05 + referencePriority.energyCurve * 1.4,
+      genre: 1.25 + referencePriority.genreTexture * 1.9
+    };
+    const score = tempoGap * weights.tempo * preference.tempoWeight
+      + keyGap * weights.key * preference.keyWeight * keyConfidence
+      + energyGap * weights.energy * preference.energyWeight
+      + genrePenalty * weights.genre * preference.genreWeight
+      + referencePatternPenalty * referencePriority.referencePattern
+      + breathingPenalty * preference.breathingMomentWeight
+      + artistRepeatPenalty * preference.artistRepeatWeight
+      - getFlowDjReferenceAffinity(candidate, data) * preference.djReferenceWeight
+      - getFlowMustHaveAffinity(candidate, parseFlowMustHaveTracks(data.mustHave)) * preference.mustHaveWeight;
+    if (score < bestScore) {
+      bestScore = score;
+      bestIndex = index;
+    }
+  });
+  return bestIndex;
+}
+
+function makeFlowVersionEnergyValues(data, count, referencePattern) {
+  const values = makeFlowEnergyValues(data.vibe, count, referencePattern);
+  const preference = getFlowPreferenceProfile(data);
+  const shapedValues = values.map((value, index) => {
+    const position = values.length === 1 ? 0 : index / (values.length - 1);
+    const softIntro = index === 0 ? preference.introBias : 0;
+    const softOutro = index === values.length - 1 ? preference.outroBias : 0;
+    const middleLift = Math.sin(position * Math.PI) * preference.midLift;
+    return Math.round(Math.max(8, Math.min(98, value + preference.energyBias + softIntro + softOutro + middleLift)));
+  });
+  return applyFlowBreathingDips(shapedValues, data);
+}
+
+function makeFlowEnergyValues(vibe, count, referencePattern) {
+  const anchors = Array.isArray(referencePattern?.energyCurve) && referencePattern.energyCurve.length >= 3
+    ? referencePattern.energyCurve
+    : {
+      Sunset: [34, 46, 62, 78, 86, 68],
+      "Morning coffee": [18, 28, 38, 44, 36, 24],
+      "After party": [52, 62, 78, 84, 74, 58],
+      Chill: [20, 26, 34, 38, 30, 22],
+      Working: [28, 38, 48, 54, 50, 36],
+      Workout: [58, 74, 88, 96, 90, 72],
+      "Road trip": [32, 44, 58, 70, 64, 46],
+      "Friday night": [38, 52, 66, 80, 74, 56],
+      "Pre-game": [42, 58, 72, 84, 88, 70],
+      "Deep focus": [24, 32, 40, 46, 42, 30]
+    }[vibe] ?? [32, 45, 58, 72, 66, 45];
+
+  return Array.from({ length: count }, (_, index) => {
+    const position = count === 1 ? 0 : index / (count - 1);
+    const scaled = position * (anchors.length - 1);
+    const left = Math.floor(scaled);
+    const right = Math.min(anchors.length - 1, left + 1);
+    const progress = scaled - left;
+    const value = anchors[left] + (anchors[right] - anchors[left]) * progress;
+    const pulse = Math.sin(index * 1.7) * 3;
+    return Math.round(Math.max(8, Math.min(98, value + pulse)));
+  });
+}
+
+function applyFlowBreathingDips(values = [], data = {}) {
+  const indexes = getFlowBreathingIndexes(values.length, data);
+  if (!indexes.length) return values;
+  const shaped = [...values];
+  indexes.forEach((index) => {
+    const previous = shaped[index - 1] ?? shaped[index];
+    shaped[index] = Math.round(Math.max(20, Math.min(shaped[index] - 11, previous - 8, 56)));
+    if (index + 1 < shaped.length && shaped[index + 1] < shaped[index] + 6) {
+      shaped[index + 1] = Math.min(98, shaped[index] + 6);
+    }
+  });
+  return shaped;
+}
+
+function getFlowPreferenceProfile(data = {}) {
+  const text = normalizeTag(`${data.dj || ""} ${data.notes || ""}`);
+  const isSmooth = /smooth|soft|gentle|dreamy|warm|melodic|chill|coffee|focus|lo fi|nujabes|bonobo|ben bohmer|lane 8|four tet|black coffee|keinemusik|deep/.test(text);
+  const isHighEnergyContext = /peak|club|rave|festival|workout|hard|high energy|punchy|fred again|peggy gou|chris lake|fisher|skrillex|knock2|mau p|charlotte/.test(text);
+  const wantsSoftIntro = /soft intro|gentle intro|slow intro|warm intro/.test(text);
+  const wantsPeak = /mid set peak|peak/.test(text);
+  const wantsDreamyOutro = /dreamy outro|soft outro|gentle ending|closing|outro/.test(text);
+  return {
+    energyBias: (isHighEnergyContext ? 4 : 0) + (isSmooth ? -6 : 0),
+    introBias: wantsSoftIntro || isSmooth ? -8 : 0,
+    outroBias: wantsDreamyOutro || isSmooth ? -7 : 0,
+    midLift: wantsPeak || isHighEnergyContext ? 5 : 0,
+    startTarget: wantsSoftIntro || isSmooth ? 18 : isHighEnergyContext ? 30 : 25,
+    startTempoWeight: isSmooth ? 0.35 : 0.25,
+    tempoWeight: isSmooth ? 1.36 : 1.2,
+    keyWeight: isSmooth ? 0.82 : 0.72,
+    genreWeight: isSmooth ? 1.28 : 1.12,
+    energyWeight: isSmooth ? 1.32 : 1.16,
+    djReferenceWeight: 2.65,
+    mustHaveWeight: 3.8,
+    breathingMomentWeight: isFlowBreathingContext(data) ? 1.15 : 0,
+    artistRepeatWeight: 1
+  };
+}
+
+function getFlowReferencePriority(referencePattern) {
+  const priority = referencePattern?.smoothPriority ?? {};
+  return {
+    tempo: Number(priority.tempo) || 0.34,
+    genreTexture: Number(priority.genreTexture) || 0.23,
+    energyCurve: Number(priority.energyCurve) || 0.22,
+    camelotKey: Number(priority.camelotKey) || 0.16,
+    referencePattern: Number(priority.referencePattern) || 0.05
+  };
+}
+
+function getFlowReferenceStartFit(track = {}, data = {}, referencePattern) {
+  if (!referencePattern) return 0;
+  const flow = normalizeTag(referencePattern.flow || "");
+  const genre = normalizeTag(track.genre || data.genre || "");
+  const energy = estimateFlowTrackEnergy(track, data);
+  let score = 0;
+  if (/slow rise|low pressure/.test(flow) && energy <= 38) score += 1;
+  if (/deep layered|club groove|uk garage/.test(flow) && energy >= 30 && energy <= 56) score += 0.75;
+  if (/festival burst/.test(flow) && energy >= 48) score += 0.65;
+  if (/melodic|progressive|deep|organic|afro|garage|house|lo fi|jazz|soul/.test(`${flow} ${genre}`)) score += 0.35;
+  return Math.min(1, score);
+}
+
+function getFlowReferencePatternPenalty(previous = {}, candidate = {}, data = {}, targetEnergy = 50, referencePattern) {
+  if (!referencePattern) return 0;
+  const flow = normalizeTag(referencePattern.flow || "");
+  const transitionStyle = normalizeTag(referencePattern.transitionStyle || "");
+  const candidateEnergy = estimateFlowTrackEnergy(candidate, data);
+  const previousEnergy = estimateFlowTrackEnergy(previous, data);
+  const energyMovement = candidateEnergy - previousEnergy;
+  let penalty = 0;
+  if (/slow rise|melodic/.test(flow)) {
+    if (Math.abs(candidate.tempo - previous.tempo) > 8) penalty += 7;
+    if (energyMovement < -14) penalty += 6;
+  }
+  if (/low pressure/.test(flow)) {
+    if (candidateEnergy > 62) penalty += 8;
+    if (Math.abs(energyMovement) > 18) penalty += 5;
+  }
+  if (/deep layered|club groove/.test(flow)) {
+    if (getFlowGenreCompatibilityPenalty(previous.genre, candidate.genre) >= 12) penalty += 6;
+    if (Math.abs(energyMovement) > 24) penalty += 4;
+  }
+  if (/uk garage/.test(flow) && !/garage|house|groove|dance|pop/.test(normalizeTag(candidate.genre || ""))) penalty += 4;
+  if (/festival burst/.test(flow) && candidateEnergy < targetEnergy - 24) penalty += 5;
+  if (/long blends|harmonic/.test(transitionStyle) && getFlowCamelotDistance(previous.camelotKey, candidate.camelotKey) > 3) penalty += 3;
+  return penalty;
+}
+
+function isFlowBreathingContext(data = {}) {
+  const text = normalizeTag(`${data.vibe || ""} ${data.genre || ""} ${data.dj || ""} ${data.notes || ""}`);
+  if (/workout|rave|mainstage|big room|dubstep|drum and bass|dnb|hard|peak|festival/.test(text)) return false;
+  return /melodic|progressive|organic|afro|deep|sunset|focus|road|chill|lane 8|ben bohmer|marsh|nora en pure|sultan|shepard|yotto|anjuna|tinlicker|jerro|le youth/.test(text);
+}
+
+function getFlowBreathingIndexes(count = 0, data = {}) {
+  if (!isFlowBreathingContext(data) || count < 8) return [];
+  const indexes = [];
+  let next = count <= 10 ? Math.floor(count / 2) : 5;
+  next = Math.max(4, Math.min(count - 3, next));
+  while (next <= count - 3) {
+    indexes.push(next);
+    next += 6;
+  }
+  return indexes;
+}
+
+function getFlowBreathingPenalty(previous = {}, candidate = {}, data = {}, nextIndex = 0, targetEnergy = 50, count = 0) {
+  if (!getFlowBreathingIndexes(count, data).includes(nextIndex)) return 0;
+  const candidateEnergy = estimateFlowTrackEnergy(candidate, data);
+  const previousEnergy = estimateFlowTrackEnergy(previous, data);
+  const energyMovement = candidateEnergy - previousEnergy;
+  const tempoGap = Math.abs(candidate.tempo - previous.tempo);
+  const genrePenalty = getFlowGenreCompatibilityPenalty(previous.genre, candidate.genre);
+  const textureFit = getFlowBreathingTextureFit(candidate, data);
+  let penalty = Math.abs(candidateEnergy - targetEnergy) * 1.05;
+  if (energyMovement > -3) penalty += 10 + Math.max(0, energyMovement) * 0.45;
+  if (energyMovement < -24) penalty += 7;
+  if (tempoGap > 8) penalty += (tempoGap - 8) * 1.4;
+  if (genrePenalty >= 12) penalty += 5;
+  if (candidate.metadataEstimated) penalty += 2.5;
+  penalty -= textureFit * 8;
+  return Math.max(-5, penalty);
+}
+
+function getFlowBreathingTextureFit(track = {}, data = {}) {
+  const text = normalizeTag(`${track.title || ""} ${track.artist || ""} ${track.genre || data.genre || ""}`);
+  const family = getFlowGenreFamily(track.genre || data.genre || "");
+  let score = 0;
+  if (family === "deep-melodic") score += 0.75;
+  if (family === "chill-soul") score += 0.55;
+  if (family === "house-groove") score += 0.25;
+  if (/melodic|progressive|organic|deep|afro|ambient|chill|sunset|dub|vocal|piano|dream|night|love|lost|float|slow|warm/.test(text)) score += 0.35;
+  if (/mainstage|big room|dubstep|drum and bass|dnb|bass|rave|festival|drop|hard/.test(text)) score -= 0.35;
+  return Math.max(0, Math.min(1, score));
+}
+
+function getFlowTransitionKey(data, index, count) {
+  if (getFlowBreathingIndexes(count, data).includes(index)) return "breathing moment";
+  const genreNotes = {
+    House: ["Deep house opener", "percussion tease", "low-pass blend", "bassline switch"],
+    "Deep house": ["Deep house opener", "warm pad blend", "low-pass blend", "late-night handoff"],
+    "Melodic house": ["melodic handoff", "warm pad blend", "breathing moment", "dreamy outro"],
+    "Progressive house": ["melodic handoff", "long blend", "subtle key shift", "wide intro"],
+    "Melodic techno": ["melodic handoff", "long blend", "tension lift", "controlled peak"],
+    "Lo-fi": ["soft fade", "warm drums", "subtle key shift", "dreamy outro"],
+    "Nu soul": ["warm drums", "soft fade", "vocal bridge", "subtle key shift"],
+    "UK garage": ["2-step bounce", "vocal chop bridge", "shuffle lift", "bassline switch"],
+    Disco: ["groove handoff", "bassline switch", "hook tease", "warm drums"],
+    Techno: ["drum bridge", "tension lift", "filter push", "controlled peak"],
+    Trance: ["melodic handoff", "long blend", "tension lift", "controlled peak"],
+    Dubstep: ["impact cut", "drop contrast", "bass reset", "short cooldown"],
+    "Bass house": ["bassline switch", "drum bridge", "filter push", "impact cut"],
+    "Mainstage / Big room": ["wide intro", "tension lift", "drop contrast", "short cooldown"],
+    "Afro house": ["percussion tease", "vocal bridge", "deep house opener", "warm pad blend"],
+    "Drum and bass": ["drum bridge", "bass reset", "short cooldown", "impact cut"],
+    "Indie dance": ["groove handoff", "hook tease", "warm pad blend", "dreamy outro"]
+  };
+  const vibeTransitions = {
+    Sunset: ["wide intro", "melodic handoff", "warm pad blend", "dreamy outro"],
+    "Morning coffee": ["soft fade", "warm drums", "subtle key shift", "dreamy outro"],
+    "After party": ["Deep house opener", "late-night handoff", "low-pass blend", "warm pad blend"],
+    Chill: ["soft fade", "warm drums", "breathing moment", "dreamy outro"],
+    Working: ["subtle key shift", "steady loop", "warm pad blend", "soft fade"],
+    Workout: ["drum bridge", "filter push", "controlled peak", "short cooldown"],
+    "Road trip": ["wide intro", "road fade", "melodic handoff", "dreamy outro"],
+    "Friday night": ["hook tease", "bassline switch", "controlled peak", "short cooldown"],
+    "Pre-game": ["vocal bridge", "filter push", "hook tease", "controlled peak"],
+    "Deep focus": ["soft fade", "steady loop", "breathing moment", "dreamy outro"]
+  };
+  const notes = genreNotes[data.genre] ?? genreNotes.House;
+  const transitions = vibeTransitions[data.vibe] ?? vibeTransitions.Sunset;
+  return index % 3 === 0 ? notes[index % notes.length] : transitions[index % transitions.length];
+}
+
+function estimateFlowTrackEnergy(track, data) {
+  const tempo = Number(track.tempo) || estimateFlowBpm(data, 0);
+  const genre = normalizeTag(track.genre || data.genre);
+  const tempoScore = Math.max(0, Math.min(100, ((tempo - 76) / 64) * 100));
+  const genreBoost =
+    /mainstage|big room|bass|dubstep|techno|trance/.test(genre) ? 12 :
+    /house|garage|disco|funk|groove/.test(genre) ? 6 :
+    /lo fi|nu soul|jazzy|chill|ambient/.test(genre) ? -10 :
+    0;
+  return Math.max(8, Math.min(98, tempoScore + genreBoost));
+}
+
+function getFlowTargetTempo(data, index, count) {
+  const range = (makeFallbackProfile(data.vibe).bpmRange || "96-124").match(/\d+/g)?.map(Number) ?? [96, 124];
+  const low = range[0] ?? 96;
+  const high = range[1] ?? low + 18;
+  const progress = count <= 1 ? 0 : index / (count - 1);
+  return low + (high - low) * progress;
+}
+
+function getFlowGenreCompatibilityPenalty(left = "", right = "") {
+  const a = normalizeTag(left);
+  const b = normalizeTag(right);
+  if (!a || !b || a === b) return 0;
+  const leftFamily = getFlowGenreFamily(a);
+  const rightFamily = getFlowGenreFamily(b);
+  if (!leftFamily || !rightFamily) return 9;
+  if (leftFamily === rightFamily) return 2;
+  const pair = [leftFamily, rightFamily].sort().join("|");
+  const softPairs = new Set(["deep-melodic|house-groove", "chill-soul|house-groove", "house-groove|pop-dance", "club-rave|deep-melodic", "club-rave|house-groove"]);
+  const mediumPairs = new Set(["chill-soul|deep-melodic", "bass|club-rave", "bass|house-groove", "deep-melodic|pop-dance"]);
+  if (softPairs.has(pair)) return 5;
+  if (mediumPairs.has(pair)) return 9;
+  return 16;
+}
+
+function getFlowGenreFamily(value = "") {
+  const text = normalizeTag(value).replace(/-/g, " ");
+  const families = [
+    { name: "deep-melodic", terms: ["melodic house", "progressive house", "organic house", "deep house", "afro house"] },
+    { name: "house-groove", terms: ["uk garage", "garage", "disco", "funk", "groove", "house"] },
+    { name: "club-rave", terms: ["techno", "trance", "mainstage", "big room", "rave"] },
+    { name: "bass", terms: ["bass house", "dubstep", "drum and bass", "dnb", "bass"] },
+    { name: "chill-soul", terms: ["lo fi", "lofi", "jazzy", "hip hop", "nu soul", "soul", "chill", "ambient"] },
+    { name: "pop-dance", terms: ["dance pop", "pop", "dance"] }
+  ];
+  return families.find((family) => family.terms.some((term) => text.includes(term)))?.name || "";
+}
+
+function getFlowCamelotDistance(left = "", right = "") {
+  const a = parseFlowCamelotKey(left);
+  const b = parseFlowCamelotKey(right);
+  if (!a || !b) return 0.75;
+  const wheelDistance = Math.min(Math.abs(a.number - b.number), 12 - Math.abs(a.number - b.number));
+  const modeDistance = a.mode === b.mode ? 0 : 0.5;
+  return wheelDistance + modeDistance;
+}
+
+function parseFlowCamelotKey(value = "") {
+  const match = normalizeFlowCamelotKey(value).match(/^([1-9]|1[0-2])([AB])$/);
+  return match ? { number: Number(match[1]), mode: match[2] } : null;
+}
+
+function normalizeFlowCamelotKey(value = "") {
+  const match = String(value).trim().match(/\b([1-9]|1[0-2])\s*([ABd])\b/i);
+  if (!match) return "";
+  const side = match[2].toUpperCase() === "D" ? "B" : match[2].toUpperCase();
+  return `${Number(match[1])}${side}`;
+}
+
+function getFlowTempoFromMeta(meta = "") {
+  const match = String(meta).match(/(\d{2,3}(?:\.\d+)?)\s*BPM/i);
+  const tempo = Number(match?.[1]);
+  return Number.isFinite(tempo) ? Math.round(tempo) : null;
+}
+
+function getFlowCamelotFromMeta(meta = "") {
+  return String(meta).match(/\b([1-9]|1[0-2])\s*[ABd]\b/i)?.[0] ?? "";
+}
+
+function estimateFlowBpm(data, index) {
+  const range = (makeFallbackProfile(data.vibe).bpmRange || "96-124").match(/\d+/g)?.map(Number) ?? [96, 124];
+  const low = range[0] ?? 96;
+  const high = range[1] ?? low + 18;
+  const arc = index < 2 ? low + index * 3 : index < 8 ? low + Math.min(high - low, index * 4) : high - (index % 4) * 2;
+  return Math.max(70, Math.min(150, Math.round(arc)));
+}
+
+function estimateFlowKey(index) {
+  return ["8A", "9A", "9B", "10B", "11B", "10A", "7A", "6B"][index % 8];
+}
+
+function parseFlowMustHaveTracks(value = "") {
+  return String(value)
+    .split(/\r?\n|;/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => ({
+      label: line,
+      raw: normalizeTag(line),
+      title: normalizeTag(line.split(/\s*[-–—]\s*/)[0] || line),
+      artist: normalizeTag(line.split(/\s*[-–—]\s*/)[1] || "")
+    }))
+    .filter((item) => item.raw.length >= 3);
+}
+
+function getFlowMustHaveAffinity(track, mustHaveTracks = []) {
+  if (!mustHaveTracks.length) return 0;
+  const title = normalizeTag(track.title || "");
+  const artist = normalizeTag(track.artist || "");
+  const combined = `${title} ${artist}`.trim();
+  let best = 0;
+  mustHaveTracks.forEach((item) => {
+    let score = 0;
+    if (item.title && (title.includes(item.title) || item.title.includes(title))) score += 0.62;
+    if (item.artist && (artist.includes(item.artist) || item.artist.includes(artist))) score += 0.48;
+    if (item.raw && (combined.includes(item.raw) || item.raw.includes(combined))) score = Math.max(score, 0.92);
+    if (!item.artist && item.title && combined.includes(item.title)) score = Math.max(score, 0.7);
+    best = Math.max(best, score);
+  });
+  return Math.max(0, Math.min(1, best));
+}
+
+function getFlowDjReferenceAffinity(track, data = {}) {
+  const reference = normalizeTag(`${data.dj || ""} ${data.notes || ""}`);
+  if (!reference) return 0;
+  const artist = normalizeTag(track.artist || "");
+  const title = normalizeTag(track.title || "");
+  const genre = normalizeTag(track.genre || data.genre || "");
+  const trackText = `${artist} ${title} ${genre}`;
+  let score = 0;
+  const referenceTokens = reference.split(/[,;/]+|\band\b|\+|&/i).map(normalizeTag).filter((token) => token.length >= 3);
+  if (referenceTokens.some((token) => artist.includes(token) || token.includes(artist))) score += 0.75;
+  const profiles = [
+    { refs: ["lane 8", "sultan", "shepard", "ben bohmer", "yotto", "marsh", "jerro", "le youth", "anjunadeep"], genres: ["melodic house", "progressive house", "deep house"], artists: ["lane 8", "sultan", "shepard", "ben bohmer", "yotto", "marsh", "jerro", "le youth", "tinlicker", "nora en pure", "luttrell", "eli & fur"] },
+    { refs: ["keinemusik", "black coffee", "rampa", "adam port", "mochakk"], genres: ["afro house", "deep house", "organic house"], artists: ["keinemusik", "black coffee", "rampa", "adam port", "mochakk"] },
+    { refs: ["fred again", "peggy gou", "four tet", "bicep", "bonobo"], genres: ["indie dance", "house", "deep house", "uk garage"], artists: ["fred again", "peggy gou", "four tet", "bicep", "bonobo", "caribou", "jungle"] }
+  ];
+  profiles.forEach((profile) => {
+    if (!profile.refs.some((ref) => reference.includes(ref))) return;
+    if (profile.artists.some((name) => trackText.includes(name))) score += 0.55;
+    if (profile.genres.some((name) => genre.includes(name))) score += 0.25;
+  });
+  return Math.max(0, Math.min(1, score));
+}
+
+function getFlowArtistRepeatPenalty(sequence = [], candidate = {}, data = {}, poolContext = []) {
+  const candidateArtist = getFlowPrimaryArtist(candidate.artist);
+  if (!candidateArtist) return 0;
+  const recentTracks = sequence.slice(-3);
+  const samePrevious = isFlowSamePrimaryArtist(sequence.at(-1)?.artist, candidate.artist);
+  const recentSameCount = recentTracks.filter((track) => isFlowSamePrimaryArtist(track.artist, candidate.artist)).length;
+  if (!samePrevious && !recentSameCount) return 0;
+  let penalty = samePrevious ? 8 : 3;
+  if (recentSameCount >= 2) penalty += 6;
+  const artistShare = getFlowArtistShare(candidateArtist, poolContext);
+  const isPreferred = normalizeTag(`${data.dj || ""} ${data.mustHave || ""} ${data.notes || ""}`).includes(candidateArtist);
+  if (artistShare >= 0.25) penalty *= 0.45;
+  if (isPreferred) penalty *= 0.38;
+  return penalty;
+}
+
+function isFlowSamePrimaryArtist(left = "", right = "") {
+  const a = getFlowPrimaryArtist(left);
+  const b = getFlowPrimaryArtist(right);
+  if (!a || !b) return false;
+  return a === b || (a.length >= 5 && b.includes(a)) || (b.length >= 5 && a.includes(b));
+}
+
+function getFlowPrimaryArtist(value = "") {
+  return normalizeTag(value).split(/\s*(?:,|&|\+|\bx\b|\bfeat\.?\b|\bfeaturing\b|\bwith\b)\s*/i).find(Boolean) || "";
+}
+
+function getFlowArtistShare(primaryArtist = "", poolContext = []) {
+  if (!primaryArtist || !poolContext.length) return 0;
+  return poolContext.filter((track) => isFlowSamePrimaryArtist(track.artist, primaryArtist)).length / poolContext.length;
 }
 
 function normalizeTag(value = "") {
