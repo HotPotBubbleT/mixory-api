@@ -1869,151 +1869,262 @@ function getFlowReferencePriority(referencePattern) {
   };
 }
 
-function getGenreSequencingStrategy(primaryGenre = "") {
+const DEFAULT_FLOW_STRATEGY = {
+  id: "house",
+  targetCurve: [36, 48, 62, 74, 66, 82, 70],
+  bpmTolerance: 8,
+  preferredResetInterval: [5, 6],
+  resetRole: "breathing moment",
+  sectionRole: "breathing",
+  resetDepth: 10,
+  resetFloor: 22,
+  resetCap: 58,
+  peakWindow: [0.62, 0.9],
+  startPeakPenalty: 9,
+  earlyPeakPenalty: 10,
+  outroBonus: 5,
+  roleOrder: ["intro", "warm-up", "groove", "builder", "vocal lift", "emotional lift", "impact", "peak", "reset", "outro"],
+  transitionWeights: {
+    bpm: 1,
+    key: 0.78,
+    energy: 1.08,
+    mood: 1,
+    groove: 1,
+    percussion: 1,
+    bass: 1,
+    vocalSpacing: 1,
+    structure: 1,
+    reset: 1
+  },
+  rules: {
+    maxConsecutiveVocals: 2,
+    maxConsecutivePeaks: 2,
+    allowMidSetBpmDrop: true,
+    requireFinalPeak: false,
+    preferResolvingOutro: true
+  }
+};
+
+const FLOW_GENRE_STRATEGIES = {
+  house: DEFAULT_FLOW_STRATEGY,
+  "melodic-house": {
+    ...DEFAULT_FLOW_STRATEGY,
+    id: "melodic-house",
+    targetCurve: [30, 42, 56, 70, 52, 76, 86, 64],
+    preferredResetInterval: [5, 6],
+    resetRole: "breathing moment",
+    sectionRole: "breathing",
+    resetDepth: 13,
+    resetCap: 54,
+    transitionWeights: { ...DEFAULT_FLOW_STRATEGY.transitionWeights, bpm: 1.08, key: 1.08, energy: 1.12, reset: 1.28, structure: 1.2, vocalSpacing: 1.05 }
+  },
+  "tech-house": {
+    ...DEFAULT_FLOW_STRATEGY,
+    id: "tech-house",
+    targetCurve: [55, 62, 70, 82, 72, 84, 95, 88],
+    bpmTolerance: 5,
+    preferredResetInterval: [4, 5],
+    resetRole: "groove reset",
+    sectionRole: "reset",
+    resetDepth: 7,
+    resetFloor: 52,
+    resetCap: 74,
+    peakWindow: [0.68, 0.95],
+    roleOrder: ["intro", "groove", "builder", "impact", "reset", "builder", "peak", "outro"],
+    transitionWeights: { ...DEFAULT_FLOW_STRATEGY.transitionWeights, bpm: 1.34, key: 0.58, energy: 1.12, mood: 1.15, reset: 1.22, structure: 1.15, vocalSpacing: 1.34, groove: 1.42, percussion: 1.3, bass: 1.32 },
+    rules: { ...DEFAULT_FLOW_STRATEGY.rules, maxConsecutiveVocals: 1, allowMidSetBpmDrop: false, requireFinalPeak: true }
+  },
+  "progressive-house": {
+    ...DEFAULT_FLOW_STRATEGY,
+    id: "progressive-house",
+    targetCurve: [35, 45, 58, 70, 82, 62, 75, 92, 68],
+    preferredResetInterval: [6, 7],
+    resetRole: "floating release",
+    sectionRole: "floating release",
+    resetDepth: 12,
+    resetCap: 60,
+    peakWindow: [0.68, 0.92],
+    roleOrder: ["intro", "warm-up", "groove", "builder", "emotional lift", "floating release", "builder", "peak", "outro"],
+    transitionWeights: { ...DEFAULT_FLOW_STRATEGY.transitionWeights, bpm: 1.04, key: 1.06, energy: 1.1, reset: 1.18, structure: 1.22, vocalSpacing: 1.02 }
+  },
+  "organic-house": {
+    ...DEFAULT_FLOW_STRATEGY,
+    id: "organic-house",
+    targetCurve: [25, 40, 55, 65, 78, 52, 68, 58],
+    preferredResetInterval: [5, 6],
+    resetRole: "natural breathing space",
+    sectionRole: "breathing",
+    resetDepth: 14,
+    resetFloor: 28,
+    resetCap: 56,
+    peakWindow: [0.55, 0.82],
+    roleOrder: ["intro", "warm-up", "groove", "builder", "emotional lift", "breathing", "groove", "outro"],
+    transitionWeights: { ...DEFAULT_FLOW_STRATEGY.transitionWeights, bpm: 1, key: 0.86, energy: 1.2, mood: 1.12, reset: 1.28, structure: 1.18, percussion: 1.18 }
+  },
+  "deep-house": {
+    ...DEFAULT_FLOW_STRATEGY,
+    id: "deep-house",
+    targetCurve: [40, 52, 65, 50, 62, 72, 55, 70, 58],
+    preferredResetInterval: [5, 6],
+    resetRole: "deep reset",
+    sectionRole: "reset",
+    resetDepth: 9,
+    resetFloor: 38,
+    resetCap: 58,
+    peakWindow: [0.55, 0.88],
+    roleOrder: ["intro", "warm-up", "groove", "reset", "groove", "builder", "deep reset", "peak", "outro"],
+    transitionWeights: { ...DEFAULT_FLOW_STRATEGY.transitionWeights, bpm: 1.1, key: 0.86, energy: 1.18, mood: 1.12, reset: 1.18, structure: 1.1, groove: 1.24, bass: 1.12 }
+  },
+  "afro-house": {
+    ...DEFAULT_FLOW_STRATEGY,
+    id: "afro-house",
+    targetCurve: [35, 50, 65, 72, 84, 66, 78, 94, 72],
+    bpmTolerance: 7,
+    preferredResetInterval: [5, 6],
+    resetRole: "percussion reset",
+    sectionRole: "percussion reset",
+    resetDepth: 9,
+    resetFloor: 48,
+    resetCap: 68,
+    peakWindow: [0.64, 0.92],
+    roleOrder: ["intro", "warm-up", "groove", "builder", "percussion reset", "vocal lift", "impact", "peak", "outro"],
+    transitionWeights: { ...DEFAULT_FLOW_STRATEGY.transitionWeights, bpm: 1.12, key: 0.62, energy: 1.08, mood: 1.12, reset: 1.2, structure: 1.16, percussion: 1.5, vocalSpacing: 1.14 },
+    rules: { ...DEFAULT_FLOW_STRATEGY.rules, maxConsecutiveVocals: 1 }
+  },
+  trance: {
+    ...DEFAULT_FLOW_STRATEGY,
+    id: "trance",
+    targetCurve: [35, 55, 72, 88, 52, 95, 75, 100, 70],
+    preferredResetInterval: [5, 6],
+    resetRole: "breakdown and release",
+    sectionRole: "floating release",
+    resetDepth: 17,
+    resetFloor: 34,
+    resetCap: 56,
+    peakWindow: [0.58, 0.95],
+    roleOrder: ["intro", "warm-up", "builder", "emotional lift", "floating release", "impact", "peak", "outro"],
+    transitionWeights: { ...DEFAULT_FLOW_STRATEGY.transitionWeights, bpm: 1.02, key: 1.22, energy: 1.04, reset: 1.32, structure: 1.3, vocalSpacing: 1.04 },
+    rules: { ...DEFAULT_FLOW_STRATEGY.rules, maxConsecutivePeaks: 2, requireFinalPeak: true }
+  },
+  "drum-and-bass": {
+    ...DEFAULT_FLOW_STRATEGY,
+    id: "drum-and-bass",
+    targetCurve: [35, 52, 68, 88, 55, 72, 98, 65],
+    bpmTolerance: 8,
+    preferredResetInterval: [4, 5],
+    resetRole: "liquid release",
+    sectionRole: "liquid release",
+    resetDepth: 16,
+    resetFloor: 40,
+    resetCap: 60,
+    peakWindow: [0.58, 0.9],
+    roleOrder: ["intro", "builder", "impact", "peak", "liquid release", "builder", "peak", "outro"],
+    transitionWeights: { ...DEFAULT_FLOW_STRATEGY.transitionWeights, bpm: 1.18, key: 0.52, energy: 1.16, mood: 1.16, reset: 1.26, structure: 1.2, bass: 1.46, vocalSpacing: 0.96 }
+  },
+  "uk-garage": {
+    ...DEFAULT_FLOW_STRATEGY,
+    id: "uk-garage",
+    targetCurve: [45, 56, 68, 72, 60, 78, 66],
+    bpmTolerance: 6,
+    preferredResetInterval: [4, 5],
+    resetRole: "shuffle reset",
+    sectionRole: "reset",
+    resetDepth: 8,
+    resetFloor: 44,
+    resetCap: 66,
+    transitionWeights: { ...DEFAULT_FLOW_STRATEGY.transitionWeights, bpm: 1.18, key: 0.62, energy: 1.1, mood: 1.12, groove: 1.35, vocalSpacing: 1.16 }
+  },
+  "bass-house": {
+    ...DEFAULT_FLOW_STRATEGY,
+    id: "bass-house",
+    targetCurve: [54, 68, 78, 92, 64, 88, 76],
+    bpmTolerance: 5,
+    preferredResetInterval: [4, 5],
+    resetRole: "bass reset",
+    sectionRole: "reset",
+    resetDepth: 12,
+    resetFloor: 46,
+    resetCap: 66,
+    transitionWeights: { ...DEFAULT_FLOW_STRATEGY.transitionWeights, bpm: 1.2, key: 0.5, energy: 1.18, mood: 1.08, bass: 1.55, structure: 1.2 },
+    rules: { ...DEFAULT_FLOW_STRATEGY.rules, requireFinalPeak: true }
+  },
+  "lo-fi-house": {
+    ...DEFAULT_FLOW_STRATEGY,
+    id: "lo-fi-house",
+    targetCurve: [24, 34, 44, 50, 40, 46, 32],
+    bpmTolerance: 10,
+    preferredResetInterval: [6, 7],
+    resetRole: "dusty reset",
+    sectionRole: "reset",
+    resetDepth: 8,
+    resetFloor: 18,
+    resetCap: 46,
+    transitionWeights: { ...DEFAULT_FLOW_STRATEGY.transitionWeights, bpm: 0.86, key: 0.82, energy: 1.28, mood: 1.25, groove: 1.12, vocalSpacing: 0.9 },
+    rules: { ...DEFAULT_FLOW_STRATEGY.rules, requireFinalPeak: false }
+  },
+  "electro-house": {
+    ...DEFAULT_FLOW_STRATEGY,
+    id: "electro-house",
+    targetCurve: [50, 64, 80, 92, 70, 94, 82],
+    bpmTolerance: 6,
+    preferredResetInterval: [4, 5],
+    resetRole: "synth reset",
+    sectionRole: "reset",
+    resetDepth: 10,
+    resetFloor: 48,
+    resetCap: 70,
+    transitionWeights: { ...DEFAULT_FLOW_STRATEGY.transitionWeights, bpm: 1.16, key: 0.58, energy: 1.16, mood: 1.08, bass: 1.28, structure: 1.2 },
+    rules: { ...DEFAULT_FLOW_STRATEGY.rules, requireFinalPeak: true }
+  }
+};
+
+function resolveFlowStrategyKey(primaryGenre = "") {
   const text = normalizeTag(primaryGenre).replace(/-/g, " ");
-  const key =
-    text.includes("tech house") ? "tech-house" :
-    text.includes("progressive") ? "progressive-house" :
-    text.includes("organic") ? "organic-house" :
-    text.includes("deep house") ? "deep-house" :
-    text.includes("afro") ? "afro-house" :
-    text.includes("trance") ? "trance" :
-    text.includes("drum and bass") || text.includes("dnb") ? "drum-and-bass" :
-    text.includes("melodic") ? "melodic-house" :
-    "house";
-  const shared = {
-    id: key,
-    energyCurve: [36, 48, 62, 74, 66, 82, 70],
-    releaseName: "breathing moment",
-    releaseRole: "breathing",
-    releaseEvery: 6,
-    releaseDepth: 10,
-    releaseFloor: 22,
-    releaseCap: 58,
-    peakWindow: [0.62, 0.9],
-    stableBpm: false,
-    startPeakPenalty: 9,
-    earlyPeakPenalty: 10,
-    outroBonus: 5,
-    roleOrder: ["intro", "warm-up", "groove", "builder", "vocal lift", "emotional lift", "impact", "peak", "reset", "outro"],
+  if (text.includes("tech house")) return "tech-house";
+  if (text.includes("progressive")) return "progressive-house";
+  if (text.includes("organic")) return "organic-house";
+  if (text.includes("deep house")) return "deep-house";
+  if (text.includes("afro")) return "afro-house";
+  if (text.includes("uk garage") || text.includes("garage")) return "uk-garage";
+  if (text.includes("bass house")) return "bass-house";
+  if (text.includes("lo fi house") || text.includes("lofi house")) return "lo-fi-house";
+  if (text.includes("electro house")) return "electro-house";
+  if (text.includes("trance")) return "trance";
+  if (text.includes("drum and bass") || text.includes("dnb")) return "drum-and-bass";
+  if (text.includes("melodic")) return "melodic-house";
+  return "house";
+}
+
+function makeFlowStrategy(config = DEFAULT_FLOW_STRATEGY) {
+  const weights = config.transitionWeights;
+  return {
+    ...config,
+    energyCurve: config.targetCurve,
+    releaseName: config.resetRole,
+    releaseRole: config.sectionRole,
+    releaseDepth: config.resetDepth,
+    releaseFloor: config.resetFloor,
+    releaseCap: config.resetCap,
+    releaseEvery: Math.round((config.preferredResetInterval[0] + config.preferredResetInterval[1]) / 2),
+    stableBpm: !config.rules.allowMidSetBpmDrop,
     weights: {
-      tempo: 1,
-      key: 0.78,
-      energy: 1.08,
-      genre: 1,
-      release: 1,
-      role: 1,
-      vocalSpacing: 1,
-      groove: 1,
-      percussion: 1,
-      bass: 1
+      tempo: weights.bpm,
+      key: weights.key,
+      energy: weights.energy,
+      genre: weights.mood,
+      release: weights.reset,
+      role: weights.structure,
+      vocalSpacing: weights.vocalSpacing,
+      groove: weights.groove,
+      percussion: weights.percussion,
+      bass: weights.bass
     }
   };
-  const strategies = {
-    "melodic-house": {
-      ...shared,
-      energyCurve: [30, 42, 56, 70, 52, 76, 86, 64],
-      releaseName: "breathing moment",
-      releaseRole: "breathing",
-      releaseEvery: 6,
-      releaseDepth: 13,
-      releaseCap: 54,
-      weights: { ...shared.weights, tempo: 1.08, key: 1.08, energy: 1.12, release: 1.28, role: 1.2, vocalSpacing: 1.05 }
-    },
-    "tech-house": {
-      ...shared,
-      energyCurve: [55, 62, 70, 82, 72, 84, 95, 88],
-      releaseName: "groove reset",
-      releaseRole: "reset",
-      releaseEvery: 4,
-      releaseDepth: 7,
-      releaseFloor: 52,
-      releaseCap: 74,
-      stableBpm: true,
-      peakWindow: [0.68, 0.95],
-      roleOrder: ["intro", "groove", "builder", "impact", "reset", "builder", "peak", "outro"],
-      weights: { ...shared.weights, tempo: 1.34, key: 0.58, energy: 1.12, genre: 1.15, release: 1.22, role: 1.15, vocalSpacing: 1.34, groove: 1.42, percussion: 1.3, bass: 1.32 }
-    },
-    "progressive-house": {
-      ...shared,
-      energyCurve: [35, 45, 58, 70, 82, 62, 75, 92, 68],
-      releaseName: "floating release",
-      releaseRole: "floating release",
-      releaseEvery: 6,
-      releaseDepth: 12,
-      releaseCap: 60,
-      peakWindow: [0.68, 0.92],
-      roleOrder: ["intro", "warm-up", "groove", "builder", "emotional lift", "floating release", "builder", "peak", "outro"],
-      weights: { ...shared.weights, tempo: 1.04, key: 1.06, energy: 1.1, release: 1.18, role: 1.22, vocalSpacing: 1.02 }
-    },
-    "organic-house": {
-      ...shared,
-      energyCurve: [25, 40, 55, 65, 78, 52, 68, 58],
-      releaseName: "natural breathing space",
-      releaseRole: "breathing",
-      releaseEvery: 5,
-      releaseDepth: 14,
-      releaseFloor: 28,
-      releaseCap: 56,
-      peakWindow: [0.55, 0.82],
-      roleOrder: ["intro", "warm-up", "groove", "builder", "emotional lift", "breathing", "groove", "outro"],
-      weights: { ...shared.weights, tempo: 1, key: 0.86, energy: 1.2, genre: 1.12, release: 1.28, role: 1.18, percussion: 1.18 }
-    },
-    "deep-house": {
-      ...shared,
-      energyCurve: [40, 52, 65, 50, 62, 72, 55, 70, 58],
-      releaseName: "deep reset",
-      releaseRole: "reset",
-      releaseEvery: 5,
-      releaseDepth: 9,
-      releaseFloor: 38,
-      releaseCap: 58,
-      peakWindow: [0.55, 0.88],
-      roleOrder: ["intro", "warm-up", "groove", "reset", "groove", "builder", "deep reset", "peak", "outro"],
-      weights: { ...shared.weights, tempo: 1.1, key: 0.86, energy: 1.18, genre: 1.12, release: 1.18, role: 1.1, groove: 1.24, bass: 1.12 }
-    },
-    "afro-house": {
-      ...shared,
-      energyCurve: [35, 50, 65, 72, 84, 66, 78, 94, 72],
-      releaseName: "percussion reset",
-      releaseRole: "percussion reset",
-      releaseEvery: 5,
-      releaseDepth: 9,
-      releaseFloor: 48,
-      releaseCap: 68,
-      peakWindow: [0.64, 0.92],
-      roleOrder: ["intro", "warm-up", "groove", "builder", "percussion reset", "vocal lift", "impact", "peak", "outro"],
-      weights: { ...shared.weights, tempo: 1.12, key: 0.62, energy: 1.08, genre: 1.12, release: 1.2, role: 1.16, percussion: 1.5, vocalSpacing: 1.14 }
-    },
-    trance: {
-      ...shared,
-      energyCurve: [35, 55, 72, 88, 52, 95, 75, 100, 70],
-      releaseName: "breakdown and release",
-      releaseRole: "floating release",
-      releaseEvery: 5,
-      releaseDepth: 17,
-      releaseFloor: 34,
-      releaseCap: 56,
-      peakWindow: [0.58, 0.95],
-      roleOrder: ["intro", "warm-up", "builder", "emotional lift", "floating release", "impact", "peak", "outro"],
-      weights: { ...shared.weights, tempo: 1.02, key: 1.22, energy: 1.04, genre: 1, release: 1.32, role: 1.3, vocalSpacing: 1.04 }
-    },
-    "drum-and-bass": {
-      ...shared,
-      energyCurve: [35, 52, 68, 88, 55, 72, 98, 65],
-      releaseName: "liquid release",
-      releaseRole: "liquid release",
-      releaseEvery: 4,
-      releaseDepth: 16,
-      releaseFloor: 40,
-      releaseCap: 60,
-      peakWindow: [0.58, 0.9],
-      roleOrder: ["intro", "builder", "impact", "peak", "liquid release", "builder", "peak", "outro"],
-      weights: { ...shared.weights, tempo: 1.18, key: 0.52, energy: 1.16, genre: 1.16, release: 1.26, role: 1.2, bass: 1.46, vocalSpacing: 0.96 }
-    },
-    house: shared
-  };
-  return strategies[key] ?? shared;
+}
+
+function getGenreSequencingStrategy(primaryGenre = "") {
+  const key = resolveFlowStrategyKey(primaryGenre);
+  return makeFlowStrategy(FLOW_GENRE_STRATEGIES[key] ?? DEFAULT_FLOW_STRATEGY);
 }
 
 function inferFlowTrackDimensions(track = {}, data = {}, strategy = getGenreSequencingStrategy(data.genre)) {
@@ -2164,7 +2275,8 @@ function getFlowReleasePenalty(previous = {}, candidate = {}, data = {}, nextInd
   if (expectsDrop && energyMovement > -3) penalty += 10 + Math.max(0, energyMovement) * 0.45;
   if (!expectsDrop && energyMovement < -18) penalty += 8;
   if (energyMovement < -26) penalty += 7;
-  if (tempoGap > (strategy.stableBpm ? 5 : 8)) penalty += (tempoGap - (strategy.stableBpm ? 5 : 8)) * 1.4;
+  const tolerance = Number(strategy.bpmTolerance) || (strategy.stableBpm ? 5 : 8);
+  if (tempoGap > tolerance) penalty += (tempoGap - tolerance) * 1.4;
   if (genrePenalty >= 12) penalty += 5;
   if (candidate.metadataEstimated) penalty += 2.5;
   penalty -= textureFit * 9;
@@ -2238,10 +2350,11 @@ function getFlowTempoDirectionPenalty(previous = {}, candidate = {}, nextIndex =
   if (!Number.isFinite(diff)) return 0;
   const position = count <= 1 ? 0 : nextIndex / (count - 1);
   let penalty = 0;
-  if (strategy.stableBpm && Math.abs(diff) > 2.5) penalty += (Math.abs(diff) - 2.5) * 2.4;
+  const tolerance = Number(strategy.bpmTolerance) || (strategy.stableBpm ? 5 : 8);
+  if (strategy.stableBpm && Math.abs(diff) > tolerance / 2) penalty += (Math.abs(diff) - tolerance / 2) * 2.4;
   if (position > 0.25 && position < 0.78 && diff < -4) penalty += Math.abs(diff) * 1.1;
   if (strategy.id === "progressive-house" && diff < -5 && position < 0.75) penalty += Math.abs(diff) * 0.9;
-  if (strategy.id === "drum-and-bass" && Math.abs(diff) > 8) penalty += (Math.abs(diff) - 8) * 1.1;
+  if (strategy.id === "drum-and-bass" && Math.abs(diff) > tolerance) penalty += (Math.abs(diff) - tolerance) * 1.1;
   return penalty;
 }
 
@@ -2274,9 +2387,11 @@ function getFlowRoleProgressionPenalty(sequence = [], candidate = {}, data = {},
   if (position < 0.18 && (candidate.roles?.includes("peak") || energy > 82)) penalty += strategy.earlyPeakPenalty;
   if (position > 0.8 && energy < 42 && !candidate.roles?.includes("outro")) penalty += 5;
   if (index > 1) {
-    const previousTwo = sequence.slice(-2);
-    const highImpactRun = previousTwo.every((track) => track.roles?.some((role) => ["peak", "impact"].includes(role)));
+    const maxPeaks = Number(strategy.rules?.maxConsecutivePeaks) || 2;
+    const previousPeaks = sequence.slice(-maxPeaks);
+    const highImpactRun = previousPeaks.length >= maxPeaks && previousPeaks.every((track) => track.roles?.some((role) => ["peak", "impact"].includes(role)));
     if (highImpactRun && candidate.roles?.some((role) => ["peak", "impact"].includes(role))) penalty += 9;
+    const previousTwo = sequence.slice(-2);
     const releaseRun = previousTwo.every((track) => track.roles?.some((role) => ["breathing", "floating release", "reset", "liquid release"].includes(role)));
     if (releaseRun && candidate.roles?.some((role) => ["breathing", "floating release", "reset", "liquid release"].includes(role))) penalty += 8;
   }
@@ -2286,8 +2401,10 @@ function getFlowRoleProgressionPenalty(sequence = [], candidate = {}, data = {},
 function getFlowVocalSpacingPenalty(sequence = [], candidate = {}, strategy = getGenreSequencingStrategy()) {
   const vocalPresence = candidate.dimensions?.vocalPresence ?? 0.4;
   if (vocalPresence < 0.66) return 0;
-  const recentVocals = sequence.slice(-2).filter((track) => (track.dimensions?.vocalPresence ?? 0.4) >= 0.66).length;
+  const maxVocals = Number(strategy.rules?.maxConsecutiveVocals) || 2;
+  const recentVocals = sequence.slice(-maxVocals).filter((track) => (track.dimensions?.vocalPresence ?? 0.4) >= 0.66).length;
   if (!recentVocals) return 0;
+  if (recentVocals < maxVocals) return recentVocals * 2.5;
   return recentVocals * (strategy.id === "tech-house" || strategy.id === "afro-house" ? 7 : 5);
 }
 
